@@ -1,0 +1,317 @@
+{
+  "project": "REMA",
+  "expansion": "Real-time Environment Matting and Anchoring",
+  "created_at": "2026-10-09T13:33:22.940462+07:00",
+  "root": "/media/pc/WS_DATA/!WORK/REMA",
+  "data_root": "/home/pc/rema-data",
+  "phase": "Architecture transition: Antilatency camera tracking + RED SDI compositing",
+  "status": "antilatency_selected_destination_migration_pending",
+  "authorization": "Create independent research project/session and plan for moving-camera actor preservation over a world-anchored floor grid and shaded blocks; first Orbbec RGB-D, later SDI main camera; no background training now",
+  "pending": [
+    "Commit and upload the private lumigrade/REMA source handoff; destination details recorded in MIGRATION.md.",
+    "Externalize host paths and rebuild/install dependencies on the destination; migrate source separately from raw evidence and runtime assets.",
+    "Integrate Antilatency pose provider and RED SDI; calibrate lens, Alt-to-RED, depth-to-RED and frame/pose timing.",
+    "Validate grid-only tracking, then RED RGB matting with Orbbec depth support and measured low-latency compositing."
+  ],
+  "assumptions": {
+    "os": "Ubuntu",
+    "gpus": [
+      "RTX 5080",
+      "RTX 3090"
+    ],
+    "camera_moving": false,
+    "runtime_local": true,
+    "research_only": true,
+    "camera_motion_note": "Marker-free RGB-D room tracking now live; physical motion accuracy not qualified",
+    "gpu_authorization": "2026-10-12 user reserves5080 for another project;3090 initiallyvacant but latest nvidia-smi shows computeowners on both. Current calibration is CPU-only; no REMA GPU admission attempted."
+  },
+  "initial_usb_observation": "lsusb did not identify an Orbbec; EMEET SmartCam S600 and other peripherals were listed. This does not identify a network-attached camera.",
+  "hardware_validated": false,
+  "matting_validated": false,
+  "pose_validated": false,
+  "latency_validated": false,
+  "new_chat": {
+    "thread_id": "01a11f5e-dcb9-7183-837a-5a1692b78c0e",
+    "host_id": "local",
+    "status_at_creation_check": "active",
+    "session_record": "SESSION.json"
+  },
+  "app_saved_project_registered": false,
+  "app_registration_note": "Available project tool lists existing projects but cannot register a new folder. Dedicated chat can work on this absolute root.",
+  "camera": {
+    "model": "Orbbec Astra Pro",
+    "confirmed_by_user": true,
+    "usb_id": "2bc5:0403",
+    "observed_connection": "USB2 480M via Astra internal hub on motherboard port3-2; IDs dynamically resolved",
+    "observed_at": "2026-10-09T13:34:13.179670+07:00",
+    "rgb_endpoint_observation": "2bc5:0501 present, uvcvideo /dev/video2 capture and /dev/video3 metadata, USB3 bus at480M",
+    "depth_stream_validated": true,
+    "rgb_stream_validated": true,
+    "sdk_plan": "Check legacy Astra/OpenNI2 depth + separate UVC RGB path; do not assume SDK v2 or synchronized RGB-D or IMU support.",
+    "depth_usb_access": "User installed exact 2bc5:0403 rule; plugdev 0660 now readable/writable",
+    "firmware": "5.8.22 (OpenNI protocol); RD108C-009 (OrbbecSDK device string)",
+    "openni_enumeration_verified": true,
+    "RGB_validation_scope": "300-frame 640x480 MJPG 30 fps smoke only; no paired timing or calibration qualification",
+    "depth_failure": "Resolved: stock OpenNI one-byte language descriptor request; use local scoped full-descriptor workaround",
+    "depth_cold_reconnect_result": "Fresh connection plus corrected OpenNI descriptor request works; no hardware fault established",
+    "fixed_usb_cable": true,
+    "user_reports_worked_on_Windows": true,
+    "sdk_validation": {
+      "OpenNI2": "60-second simultaneous depth+UVC RGB capture passed integrity with descriptor workaround",
+      "OrbbecSDK_v1.10.37": "Recognizes and streams Y11 frames, but live values 169\u2013228 with scale1 are not validated millimetres; SDK software disparity conversion property3004 denied. Not used for metric GUI depth.",
+      "OrbbecSDK_v2": "not selected; legacy OpenNI protocol support belongs to v1",
+      "calibration": "factory OpenNI camera-parameter array is entirely nonfinite; not usable"
+    },
+    "rgb_controls": {
+      "manual_exposure_exposed": false,
+      "manual_focus_exposed": false,
+      "anti_flicker_current": "50Hz",
+      "white_balance_lock_readback_and_restore_tested": true
+    },
+    "depth_startup_fix": {
+      "cause": "OBEXTENSION_ID_LASER_EN write returned success but stopped valid metric depth on this Astra",
+      "fix": "Depth streaming owns emitter initialization; explicit projector writes rejected in metric-depth mode",
+      "three_independent_opens_passed": true,
+      "valid_pixel_counts": [
+        289488,
+        289496,
+        288060,
+        289276,
+        288044,
+        289476
+      ],
+      "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
+    }
+  },
+  "last_updated": "2026-10-12T15:55:06.078297+07:00",
+  "scaffold": {
+    "cpu_contract_tests": 105,
+    "hardware_validation": false,
+    "launcher": "tools/launch.py",
+    "memory_max_mib": 4096,
+    "runtime_max_seconds": 600,
+    "gpu_enabled": true,
+    "gpu_guard": "rema/gpu_guard.py",
+    "future_gpu_vram_watchdog_required": false,
+    "resource_validation": {
+      "memory_oom_stop": true,
+      "runtime_stop": true,
+      "exit_code_propagation": true,
+      "both_shared_GPU_locks_rejected": true,
+      "report": "/home/pc/rema-data/reports/launcher_validation.json"
+    }
+  },
+  "capture_tools": {
+    "source": "tools/astra_capture.cpp",
+    "build": "tools/build_capture.py",
+    "analyzer": "tools/analyze_capture.py",
+    "live_joint_capture_tested": true,
+    "rgb_depth_sync_qualified": false,
+    "usb_compatibility": "tools/astra_usb_compat.c",
+    "capture_command": "python3 tools/capture_astra.py --seconds 60",
+    "last_working_dataset": "/home/pc/rema-data/recordings/astra_20261009_142049_369857"
+  },
+  "gui": {
+    "entrypoint": "python3 tools/run_gui.py",
+    "backend": "OpenNI2 2.3.0.86 DEPTH_1_MM plus exact-device descriptor workaround; UVC RGB",
+    "model": "Unchanged RVM FP32 MobileNetV3 v1.0.0 ratio0.375, CUDA provider",
+    "compute": "Current live session CPU only, RVM plus native CPU rigid depth reprojection and CPU tracking/rendering.",
+    "resource_limits": {
+      "memory_gib": 4,
+      "cpu_quota_percent": 400,
+      "runtime_seconds": 7200,
+      "tasks_max": 64,
+      "gpu_process_vram_watchdog_mib": 4096,
+      "ort_gpu_arena_mib": 1024
+    },
+    "view": "equal RGB with raw-depth inset / Composited person plus illustrative grid",
+    "observed_fps": 12.2,
+    "alignment": "Refined saved25mm-print RGB/depth transform, explicitly provisional/unqualified.",
+    "nearest_person": "semantic connected component ranked by valid depth; touching people can merge",
+    "user_visual_acceptance": "User confirms live masking works; tracking does not and update delay is high. Chooses external Antilatency tracking.",
+    "tracking": true,
+    "unit": "rema-live-gui.service",
+    "mask_version": "conservative_actor_v2",
+    "empty_room_reference": "Optional explicit capture, frozen; uncertain RGB+depth background agreement only; clear if camera moves",
+    "previous_user_feedback": "v1 noisy edges and intermittent missing arms; CPU17fps accepted",
+    "validation_report": "/home/pc/rema-data/reports/live_mask_v2_validation.json",
+    "tracking_provider": "rgbd_orb_keyframe_map",
+    "tracking_qualified": false
+  },
+  "calibration_workflow": {
+    "wizard": "python3 tools/run_gui.py --calibrate",
+    "default_route": "Automatic A4 depth-plane selection + RGB Charuco",
+    "RGB_IR_alternative": "Streaming proven; printed pattern has insufficient IR contrast in current room",
+    "target": "A4 10x7 Charuco,25mm squares,18.5mm markers,DICT_4X4_100; rigid backing flush to A4",
+    "minimum_fit_poses": 24,
+    "heldout_split": "every fourth capture",
+    "minimum_depth_validation_poses": 6,
+    "depth_intrinsics_source": "OpenNI CoordinateConverter; fx570.34216,fy570.34222,cx320,cy240; extra depth distortion assumed0 pending outline validation",
+    "geometry_qualified": false,
+    "timing_qualified": false,
+    "active_calibration_present": false,
+    "raw_data": "/home/pc/rema-data/calibration",
+    "timing": "12-second axial board sweep estimates relative arrival offset; hardware exposure sync unqualified",
+    "hands_free": true,
+    "fit_distance_targets_metres": [
+      0.6,
+      0.8,
+      1.02
+    ],
+    "hold_seconds": 1.4,
+    "start_countdown_seconds": 10,
+    "spoken_cues": "Disabled by default per user request; optional checkbox available",
+    "flow": "Confirm new square size; START10s; free-pose stable auto captures with novelty/coverage;24minimum up to40 then fit;6independent broad-range depth checks andtiming proxy. Existing qualification unchanged.",
+    "software_checks": "105 tests passed. Seven refinement tests rerun after final native guard, OpenCV threads capped at2.",
+    "measured_square_mm": 25.0,
+    "measurement_confirmed_by_user": true,
+    "display": "Default mirrored native depth, 0\u20132m colours, black invalid; green detected surface, cyan expected A4 projection; RGB toggle",
+    "sensor_data": "Native unmirrored pixels remain unchanged for raw capture, fitting and validation",
+    "saved_fit_poses": 24,
+    "resume_session": "/home/pc/rema-data/calibration/session_20261012_131312_easy",
+    "demo": "outputs/REMA_filled_target_overlay.mp4 (recorded RGB / overlay demonstration)",
+    "rejected_capture_diagnostics": "Detailed native pose errors +3 bounded rolling local raw pairs",
+    "easy_wizard": "python3 tools/run_gui.py --calibrate --easy --new-print",
+    "new_print_session": "/home/pc/rema-data/calibration/session_20261012_131312_easy",
+    "new_print_measurement_confirmed": true,
+    "new_print_user_reply": "Corrected to25\u00d725mm; exact REMA RGB+Infrared PDF10\u00d77,18.5mmmarkers,DICT_4X4_100",
+    "acquisition_mode": "EasyGuide; fit-set-only coverage accounts for everyfourthview heldout",
+    "start_button": "Always visible; enabled atready, explainsmissinginput if any; staysvisible asrunningstatus afterclick",
+    "geometry_fit_passed": true,
+    "heldout_rgb_p95_px": 0.2627101,
+    "heldout_plane_p95_m": 0.00603412,
+    "depth_checks_passed": 0,
+    "progress_ui": "Blue CAPTURE ONLY bar; separate accuracy counts/edge metrics and archived offline refinement results; full capture no longer implies green success.",
+    "resume_support": "Saved24 views and complete6-check failedset retained; opens blocked review with board-down instruction.",
+    "backing_observation": "User tripod setup; latest008\u2013011 are isolatedboard captures. Do not blame grip/oversize backing for these.",
+    "depth_check_failure": "Current original set12: six recorded, zero passed. Five planes pass; one historical detector failure now recoverable. Offline refinement evaluated separately.",
+    "validator_version": "full_surface_outline_v2",
+    "outline_recheck": "/home/pc/rema-data/calibration/session_20261012_131312_easy/outline_recheck_v2.json",
+    "latest_edge_diagnostic": "Full-outline refinement improves evaluation captures11,16,17; remaining11p953.69px. No grip/box cause asserted.",
+    "gui_running": false,
+    "rear_handle": "User reports fitted rear handle and no fingers on board outline",
+    "validation_flow": "Collect all six independent checks including failures; no restart on first alignment miss. Preserve raw/checkset and write complete summary. Activation still requires all six pass + diversity.",
+    "experimental_refinement": {
+      "folder": "/home/pc/rema-data/calibration/session_20261012_131312_easy/refinement_20261012_153341",
+      "training": [
+        8,
+        9,
+        10,
+        12,
+        13,
+        14,
+        15
+      ],
+      "evaluation": [
+        11,
+        16,
+        17
+      ],
+      "evaluation_passed": 2,
+      "evaluation_total": 3,
+      "edge_p95_before": [
+        7.64,
+        5.73,
+        8.6
+      ],
+      "edge_p95_after": [
+        3.69,
+        2.87,
+        2.87
+      ],
+      "qualified": false
+    },
+    "checks_recorded_current_set": 6,
+    "far_detection": "Hardware comparison:640MJPG6/13/6corners,640YUYV9/10/17,HDMJPG26/27/30,HDYUYV40/41/47. ConcurrentHD+depth40/41boardposes recovered around1.06m; oneweakframe retained inreport.",
+    "rgb_capture_profile": "/home/pc/rema-data/config/calibration_rgb.json",
+    "rgb_capture": "1280x720 YUYV10fps duringcalibration only; liveGUI default640x480MJPG30 unchanged",
+    "rgb_geometry_mapping": "Measured static-scene homography HD\u2192existing640calibration coordinates, SIFT435matches; commonboardcorner p950.53\u20130.59px. Registration notqualification; profile+nativeHDpixels+virtualdetectedpoints/IDs preserved ineachnewcapture.",
+    "far_capture_verified": "HD mode recorded actual far check3; live wizard advanced tocheck4/6. Recording is not a qualitypass."
+  },
+  "p1_implementation": {
+    "provider": "Fixed ChArUco target placed flat on floor; target must stay visible",
+    "renderer": "Calibrated same-RGB-frame25cm grid and3 shaded blocks; actor foreground remains in front",
+    "failure_mode": "Current RGB on target loss, ambiguous pose or implausible jump; no stale pose rendered",
+    "static_reference": "Disabled/cleared when tracking camera",
+    "software_validation": "Synthetic100-frame image/detection/pose/render sequence:90 tracked,8 intentional lost frames all rejected,2 reacquisition frames; p95translation1.78mm synthetic only",
+    "hardware_validated": false,
+    "enabled_when": "Qualified calibration and user marks target fixed flat on floor",
+    "report": "/home/pc/rema-data/reports/p1_synthetic_tracking.json"
+  },
+  "room_tracking": {
+    "authorization": "User explicitly requests temporary/auto calibration and proceed without unreliable home print",
+    "configuration": "/home/pc/rema-data/calibration/provisional.json",
+    "measured_active_unchanged": true,
+    "provider": "ORB RGB-D keyframe PnP plus forward/backward-checked current-frame optical flow, descriptor refresh every4 flow frames and forced loss after8 without refresh",
+    "floor": "Depth-plane estimate if supported, otherwise explicit user-height preview plane; initial world frame frozen until explicit reset",
+    "loss": "Current RGB fallback; original map retained for two-frame relocalization; no stale floor or hidden origin reset",
+    "limitations": [
+      "Full calibration not passed: one archived evaluation edge p95 3.69px >3px.",
+      "Replay tracked86/100 vs previous87/100, same8lost; later live loss persists.",
+      "No global SLAM loop closure, exposure synchronization or physical accuracy qualification."
+    ],
+    "tests": 78,
+    "synthetic_report": "/home/pc/rema-data/reports/room_tracking_synthetic.json",
+    "live_report": "/home/pc/rema-data/reports/refined_tracking_live.json",
+    "gui_report": "/home/pc/rema-data/reports/room_gui_integration.json",
+    "launch": "python3 tools/run_gui.py --room-tracking",
+    "refinement": "/home/pc/rema-data/calibration/session_20261012_131312_easy/refinement_20261012_153341",
+    "previous_configuration_backup": "/home/pc/rema-data/calibration/provisional_before_refinement_20261012_154102.json",
+    "refinement_replay_report": "/home/pc/rema-data/reports/refined_tracking_replay.json",
+    "development_status": "Legacy prototype; superseded by selected Antilatency provider, not yet implemented."
+  },
+  "performance_upgrade": {
+    "backend": "CUDAExecutionProvider",
+    "gpu_uuid": "GPU-8ddc2281-7575-4d2a-962a-538850e1b60f",
+    "environment": "/home/pc/rema-data/envs/live-gpu",
+    "cpu_environment_preserved": "/home/pc/rema-data/envs/p0",
+    "observed_vram_mib": 636,
+    "controlled_matte_benchmark": {
+      "cpu_p50_ms": 32.09,
+      "gpu_p50_ms": 4.62,
+      "mean_abs_alpha_error": 1.1948e-08
+    },
+    "controlled_room_replay": {
+      "old_valid": 83,
+      "new_valid": 87,
+      "frames": 100,
+      "old_p50_ms": 11.24,
+      "new_p50_ms": 4.9
+    },
+    "live_report": "/home/pc/rema-data/reports/gpu_flow_live_validation.json",
+    "live_scope": "Separate actual live scene, not controlled before/after motion or latency qualification",
+    "reproduction": "python3 tools/run_gui.py --room-tracking (GPU default); append --cpu for CPU fallback",
+    "guard": "tools/gpu_session.py owns shared locks, refuses compute contention, monitors per-process4GiBVRAM/disk/runtime;4GiBRAM/400%CPU/64tasks cgroup unchanged"
+  },
+  "tracking_decision": {
+    "decided_at": "2026-10-12T15:49:36.360710+07:00",
+    "provider": "Antilatency Alt",
+    "authoritative": true,
+    "implemented": false,
+    "user_reports_existing_system_working": true,
+    "destination": "Other Ubuntu machine with Antilatency attached",
+    "main_camera": "RED V-RAPTOR 8K VV",
+    "mounting": "Orbbec above RED, Alt on RED top handle; rigid transforms required",
+    "compositing": "REMA real-time RED-video foreground over rendered background; no LED wall",
+    "legacy_orb_work": "Retained as prototype; further self-tracking improvement deprioritized",
+    "latency_note": "External pose does not remove SDI/inference/render/display delay; measure and synchronize per-frame pose history"
+  },
+  "migration": {
+    "repository_url": "https://github.com/lumigrade/REMA",
+    "git_checkout": true,
+    "push_performed": false,
+    "portability_complete": false,
+    "known_host_specific_source_files": 23,
+    "external_data_root": "/home/pc/rema-data",
+    "destination_inventory_pending": [
+      "Ubuntu version",
+      "Osprey exact model and negotiated format",
+      "RED sensor crop and zoom/focus usage",
+      "Antilatency installed SDK/Service and connection"
+    ],
+    "private_requested": true,
+    "destination_gpu": "RTX 5080",
+    "destination_capture": "Osprey SDI-USB, exact model pending",
+    "destination_lens": "Angenieux Optimo 28-76 mm"
+  }
+}
