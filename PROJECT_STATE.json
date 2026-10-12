@@ -5,10 +5,9 @@
   "root": "/media/pc/WS_DATA/!WORK/REMA",
   "data_root": "/home/pc/rema-data",
   "phase": "Architecture transition: Antilatency camera tracking + RED SDI compositing",
-  "status": "antilatency_selected_destination_migration_pending",
+  "status": "private_source_handoff_published_destination_setup_pending",
   "authorization": "Create independent research project/session and plan for moving-camera actor preservation over a world-anchored floor grid and shaded blocks; first Orbbec RGB-D, later SDI main camera; no background training now",
   "pending": [
-    "Commit and upload the private lumigrade/REMA source handoff; destination details recorded in MIGRATION.md.",
     "Externalize host paths and rebuild/install dependencies on the destination; migrate source separately from raw evidence and runtime assets.",
     "Integrate Antilatency pose provider and RED SDI; calibrate lens, Alt-to-RED, depth-to-RED and frame/pose timing.",
     "Validate grid-only tracking, then RED RGB matting with Orbbec depth support and measured low-latency compositing."
@@ -83,7 +82,7 @@
       "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
     }
   },
-  "last_updated": "2026-10-12T15:55:06.078297+07:00",
+  "last_updated": "2026-10-12T16:03:14.486463+07:00",
   "scaffold": {
     "cpu_contract_tests": 105,
     "hardware_validation": false,
@@ -312,6 +311,11 @@
     "private_requested": true,
     "destination_gpu": "RTX 5080",
     "destination_capture": "Osprey SDI-USB, exact model pending",
-    "destination_lens": "Angenieux Optimo 28-76 mm"
+    "destination_lens": "Angenieux Optimo 28-76 mm",
+    "source_uploaded": true,
+    "private_verified": true,
+    "upload_method": "Authenticated GitHub browser commits on main; CLI push unavailable",
+    "local_checkpoint_commit": "d04cfb4",
+    "local_history_note": "Local checkpoint and GitHub browser commits have separate histories. Clone GitHub main on the destination; do not force-push the source-host checkpoint."
   }
 }
