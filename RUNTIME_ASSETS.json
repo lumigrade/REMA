@@ -1,0 +1,40 @@
+{
+  "external_data_root_on_source": "/home/pc/rema-data",
+  "models": {
+    "rvm": {
+      "repository": "https://github.com/PeterL1n/RobustVideoMatting",
+      "release": "v1.0.0",
+      "model_sha256": "88d4531297118f595bf2fd60f6f566aec2e559393802d1f436c380f0cbbd2828"
+    },
+    "pphumanseg": {
+      "repository": "https://github.com/opencv/opencv_zoo",
+      "commit": "47534e27c9851bb1128ccc0102f1145e27f23f98",
+      "model_sha256": "552d8a984054e59b5d773d24b9b12022b22046ceb2bbc4c9aaeaceb36a9ddf24"
+    }
+  },
+  "model_filenames": {
+    "rvm": "rvm_mobilenetv3_fp32.onnx",
+    "pphumanseg": "human_segmentation_pphumanseg_2023mar.onnx"
+  },
+  "openni": {
+    "version": "2.3.0.86_202210111154_4c8f5aa4_beta6_linux",
+    "source_host_sdk_dir": "deps/openni/OpenNI_2.3.0.86_202210111154_4c8f5aa4_beta6_linux/sdk",
+    "usage": "DEPTH_1_MM 640x480 30fps; process-scoped astra_usb_compat preload required on tested host"
+  },
+  "orbbec_sdk_v1": {
+    "version": "1.10.37",
+    "source": "https://github.com/orbbec/OrbbecSDK/releases/tag/v1.10.37",
+    "usage": "Diagnostic only; do not substitute unvalidated Y11 values for metric depth"
+  },
+  "antilatency": {
+    "installed_version": "pending destination inventory",
+    "sample": "https://www.developers.antilatency.com/Software/Samples_en.html"
+  },
+  "source_data_sizes_approx": {
+    "models": "21 MiB",
+    "deps": "925 MiB",
+    "calibration": "152 MiB",
+    "recordings": "2.6 GiB"
+  },
+  "note": "Asset binaries and raw evidence are intentionally outside Git. Model/SDK licenses remain their respective owners. Rig recalibration required after mounting."
+}
