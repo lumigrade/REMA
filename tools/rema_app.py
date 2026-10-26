@@ -60,7 +60,7 @@ def main():
         return 0
 
     # Osprey + signal
-    from rema.sdi_capture import SignalMonitor, V4L2Capture, find_video_device
+    from rema.sdi_capture import SignalMonitor, V4L2Capture, find_video_device, picture_inset
     try:
         dev = find_video_device('Osprey')
     except RuntimeError:
@@ -68,14 +68,18 @@ def main():
         return 1
     try:
         with V4L2Capture(dev) as cap:
-            mon, states, t0 = SignalMonitor(), [], time.monotonic()
+            mon, states, insets, t0 = SignalMonitor(), [], [], time.monotonic()
             while time.monotonic() - t0 < 1.5:
                 f = cap.read(timeout=1.0)
                 if f is not None:
                     states.append(mon.update(f.image_bgr))
+                    insets.append(picture_inset(f.image_bgr))
     except OSError as e:
         notify('REMA: Osprey busy or unavailable', f'{dev}: {e}. Close other programs using the camera.', urgent=True)
         return 1
+    if insets and sum(i is not None for i in insets) > len(insets) // 2:
+        notify('REMA: camera SDI overlays are on', 'The RED is sending its monitoring overlays on SDI, which shrinks the picture '
+               'into a window. On the camera: Monitoring > Monitors > SDI > overlays Clean. Starting anyway.', urgent=True)
     if states and states.count('colour_bars') > len(states) // 2:
         notify('REMA: no camera signal', 'The Osprey shows colour bars: check the RED SDI output and cable. Starting anyway.')
 

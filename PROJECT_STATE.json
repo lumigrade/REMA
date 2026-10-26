@@ -62,7 +62,7 @@
     "user_reports_worked_on_Windows": true,
     "sdk_validation": {
       "OpenNI2": "60-second simultaneous depth+UVC RGB capture passed integrity with descriptor workaround",
-      "OrbbecSDK_v1.10.37": "Recognizes and streams Y11 frames, but live values 169\u2013228 with scale1 are not validated millimetres; SDK software disparity conversion property3004 denied. Not used for metric GUI depth.",
+      "OrbbecSDK_v1.10.37": "Recognizes and streams Y11 frames, but live values 169–228 with scale1 are not validated millimetres; SDK software disparity conversion property3004 denied. Not used for metric GUI depth.",
       "OrbbecSDK_v2": "not selected; legacy OpenNI protocol support belongs to v1",
       "calibration": "factory OpenNI camera-parameter array is entirely nonfinite; not usable"
     },
@@ -87,7 +87,7 @@
       "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
     }
   },
-  "last_updated": "2026-10-24T12:15:18.715129+07:00",
+  "last_updated": "2026-10-26T15:12:10+07:00",
   "scaffold": {
     "cpu_contract_tests": 105,
     "hardware_validation": false,
@@ -169,7 +169,7 @@
     "software_checks": "105 tests passed. Seven refinement tests rerun after final native guard, OpenCV threads capped at2.",
     "measured_square_mm": 25.0,
     "measurement_confirmed_by_user": true,
-    "display": "Default mirrored native depth, 0\u20132m colours, black invalid; green detected surface, cyan expected A4 projection; RGB toggle",
+    "display": "Default mirrored native depth, 0–2m colours, black invalid; green detected surface, cyan expected A4 projection; RGB toggle",
     "sensor_data": "Native unmirrored pixels remain unchanged for raw capture, fitting and validation",
     "saved_fit_poses": 24,
     "resume_session": "/home/pc/rema-data/calibration/session_20261012_131312_easy",
@@ -178,7 +178,7 @@
     "easy_wizard": "python3 tools/run_gui.py --calibrate --easy --new-print",
     "new_print_session": "/home/pc/rema-data/calibration/session_20261012_131312_easy",
     "new_print_measurement_confirmed": true,
-    "new_print_user_reply": "Corrected to25\u00d725mm; exact REMA RGB+Infrared PDF10\u00d77,18.5mmmarkers,DICT_4X4_100",
+    "new_print_user_reply": "Corrected to25×25mm; exact REMA RGB+Infrared PDF10×7,18.5mmmarkers,DICT_4X4_100",
     "acquisition_mode": "EasyGuide; fit-set-only coverage accounts for everyfourthview heldout",
     "start_button": "Always visible; enabled atready, explainsmissinginput if any; staysvisible asrunningstatus afterclick",
     "geometry_fit_passed": true,
@@ -187,7 +187,7 @@
     "depth_checks_passed": 0,
     "progress_ui": "Blue CAPTURE ONLY bar; separate accuracy counts/edge metrics and archived offline refinement results; full capture no longer implies green success.",
     "resume_support": "Saved24 views and complete6-check failedset retained; opens blocked review with board-down instruction.",
-    "backing_observation": "User tripod setup; latest008\u2013011 are isolatedboard captures. Do not blame grip/oversize backing for these.",
+    "backing_observation": "User tripod setup; latest008–011 are isolatedboard captures. Do not blame grip/oversize backing for these.",
     "depth_check_failure": "Current original set12: six recorded, zero passed. Five planes pass; one historical detector failure now recoverable. Offline refinement evaluated separately.",
     "validator_version": "full_surface_outline_v2",
     "outline_recheck": "/home/pc/rema-data/calibration/session_20261012_131312_easy/outline_recheck_v2.json",
@@ -229,7 +229,7 @@
     "far_detection": "Hardware comparison:640MJPG6/13/6corners,640YUYV9/10/17,HDMJPG26/27/30,HDYUYV40/41/47. ConcurrentHD+depth40/41boardposes recovered around1.06m; oneweakframe retained inreport.",
     "rgb_capture_profile": "/home/pc/rema-data/config/calibration_rgb.json",
     "rgb_capture": "1280x720 YUYV10fps duringcalibration only; liveGUI default640x480MJPG30 unchanged",
-    "rgb_geometry_mapping": "Measured static-scene homography HD\u2192existing640calibration coordinates, SIFT435matches; commonboardcorner p950.53\u20130.59px. Registration notqualification; profile+nativeHDpixels+virtualdetectedpoints/IDs preserved ineachnewcapture.",
+    "rgb_geometry_mapping": "Measured static-scene homography HD→existing640calibration coordinates, SIFT435matches; commonboardcorner p950.53–0.59px. Registration notqualification; profile+nativeHDpixels+virtualdetectedpoints/IDs preserved ineachnewcapture.",
     "far_capture_verified": "HD mode recorded actual far check3; live wizard advanced tocheck4/6. Recording is not a qualitypass."
   },
   "p1_implementation": {
@@ -800,5 +800,11 @@
     },
     "live": "rig_live --background splat; not yet run on RED (no SDI signal)",
     "training": "none (pre-trained sample only)"
+  },
+  "sdi_overlay_check": {
+    "date": "2026-10-26T15:12:10+07:00",
+    "finding": "RED SDI monitoring overlays shrink the picture to 1192x756 inside 1360x768; calibration expects Clean full frame",
+    "software": "rema.sdi_capture.picture_inset + rig_live warning + rema_app pre-flight notification; no auto-crop",
+    "next_action": "set RED SDI output to Clean (Monitoring > Monitors > SDI overlays off)"
   }
 }

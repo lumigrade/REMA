@@ -296,6 +296,20 @@ class Capture(unittest.TestCase):
         flat_grey = np.full((768, 1360, 3), 90, np.uint8)
         self.assertFalse(SC.colour_bars_score(flat_grey)[0])
 
+    def test_picture_inset_detects_overlay_feed(self):
+        rng = np.random.default_rng(3)
+        clean = (rng.random((768, 1360, 3)) * 200 + 20).astype(np.uint8)
+        self.assertIsNone(SC.picture_inset(clean))
+        overlay = np.zeros_like(clean)
+        overlay[37:708, 88:1278] = clean[37:708, 88:1278]                 # picture shrunk into a window
+        overlay[5:30, 200:1100] = 230                                      # status text bars
+        overlay[715:760, 300:1200] = 200
+        x0, y0, x1, y1 = SC.picture_inset(overlay)
+        self.assertEqual((x0, x1), (88, 1278))
+        dark_left = clean.copy()
+        dark_left[:, :120] = rng.integers(0, 6, (768, 120, 3))             # dark scenery on one side only
+        self.assertIsNone(SC.picture_inset(dark_left))
+
     def test_signal_monitor_frozen(self):
         m = SC.SignalMonitor(frozen_after=3)
         img = (RNG.random((90, 160, 3)) * 255).astype(np.uint8)

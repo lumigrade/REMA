@@ -383,6 +383,28 @@ def colour_bars_score(bgr, max_bars=10):
     return vertically_uniform > 0.95 and 3 <= bands <= max_bars, bands
 
 
+def picture_inset(bgr, dark=2.5, min_border=0.03, max_asymmetry=0.015):
+    """Detect a camera monitoring-overlay feed: the picture shrunk into a window with black borders
+    (e.g. RED SDI with overlays on: status bars top/bottom, frame lines, picture inset).
+    Returns (x0, y0, x1, y1) of the active picture, or None for a clean full-frame feed."""
+    g = bgr.astype(np.float32).mean(2)
+    h, w = g.shape
+    cols = g[h // 4: 3 * h // 4].mean(0)              # middle rows: avoid status bars when finding side borders
+    left = int(np.argmax(cols > dark))
+    right = w - int(np.argmax(cols[::-1] > dark))
+    if left < w * min_border or (w - right) < w * min_border:
+        return None                                     # picture reaches both sides: clean feed
+    if abs(left - (w - right)) > w * max_asymmetry:
+        return None                                     # dark scenery on one side, not a centred inset
+    if g[h // 4: 3 * h // 4, :left].max(initial=0) > 4 * dark or g[h // 4: 3 * h // 4, right:].max(initial=0) > 4 * dark:
+        return None                                     # borders must be pure black, not dark picture
+    band = g[:, left + 5:right - 5]
+    rows_dark = band.mean(1) < dark
+    top = int(np.argmax(~rows_dark))
+    bottom = h - int(np.argmax(~rows_dark[::-1]))
+    return left, top, right, bottom
+
+
 class SignalMonitor:
     """Classifies the feed as 'live', 'colour_bars' (no SDI input) or 'frozen'."""
 

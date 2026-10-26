@@ -6,6 +6,7 @@ How to run a REMA virtual-production session on the rig host. One-time host setu
 
 | Check | How | Good |
 |---|---|---|
+| RED SDI output is **Clean** | camera monitoring menu | no status bars, frame lines or centre mark on the SDI feed |
 | RED picture reaches the Osprey | `~/rema-data/envs/rig/bin/python tools/probe_sdi.py --seconds 5` | `signal: live`, ~14.8 fps, 0 drops. `colour_bars` = no SDI input (camera, cable or SDI output setting). |
 | Lens settings | on the camera | **Image stabilisation OFF, autofocus OFF**, same zoom/focus as calibration. IS shifts the picture inside the camera and breaks registration. |
 | Antilatency socket | `lsusb -t` | on a **motherboard USB port or powered hub** — not a bus-powered hub (it needs 500 mA; brown-outs drop every Alt). |
@@ -69,6 +70,7 @@ Manual start:
 | Composite cuts to the real room / tracking bar red "tracker samples late" | Antilatency radio or USB dropout | socket on a direct powered port; check Alt battery and Tag; kernel log `journalctl -k | grep 1-7` |
 | Picture drifts after each move while tracking is still | lens image stabilisation | turn IS off |
 | Wrong picture, 10 fps, 1280×720 | wrong capture device | use the default `--device Osprey` (devices are found by name) |
+| Actor picture smaller than the background, camera status text/frame lines visible, red `CAMERA SDI OVERLAYS ON` | RED sends its monitoring overlays on SDI, which shrinks the picture into a window (calibration expects the clean full frame) | on the RED: Monitoring → Monitors → SDI → overlays **Clean** (frame guides off for SDI) |
 | `colour_bars` / no composite | no SDI into the Osprey | camera SDI output on, cable seated |
 | Depth PiP `NO DEPTH – reconnecting` | Astra USB dropped | re-seat the Astra cable (USB 2.0 high-speed port, strain relief) — REMA reconnects automatically |
 | Edge fringe around the actor | bright, busy background behind the actor; colour-only matte | soften background lights; depth-assisted matting is the next step |

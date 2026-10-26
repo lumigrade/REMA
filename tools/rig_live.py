@@ -31,7 +31,7 @@ import numpy as np
 
 from rema import pose as P
 from rema import virtual_scene as VS
-from rema.sdi_capture import SignalMonitor, V4L2Capture
+from rema.sdi_capture import SignalMonitor, V4L2Capture, picture_inset
 from rema.video_out import TimelineH264, put_lines
 
 cv2.setNumThreads(2)
@@ -199,6 +199,7 @@ class Engine:
         self.sdk_baseline = None
         self.held_sample = None
         self.held_since = None
+        self.inset = None
         self.splat = None
         self.splat_error = None
         self.scene = None
@@ -271,6 +272,8 @@ class Engine:
         h, w = f.image_bgr.shape[:2]
         rig = self._rig_for(w, h)
         signal = self.monitor.update(f.image_bgr)
+        if self.stats['frames'] % 15 == 0:          # camera monitoring overlays shrink the picture into a window
+            self.inset = picture_inset(f.image_bgr)
         # Pose for this frame's estimated exposure: kernel start-of-frame minus the configured upstream delay.
         t_query = f.kernel_ns - int(self.a.video_delay_ms * 1e6)
         q = P.PoseQuery(False, 'no_pose_source')
@@ -338,6 +341,7 @@ class Engine:
                 quality, why = P.tracking_quality(self.history, time.monotonic_ns(), baseline_value=self.sdk_baseline)
         else:
             quality, why = 0.0, 'no tracker'
+        tele['picture_inset'] = list(self.inset) if self.inset else None
         tele['tracking_quality'] = round(quality, 3)
         tele['tracking_quality_reason'] = why
         self.last = {'frame': f, 'out': out, 'reason': reason, 'fps': fps, 'tele': tele, 'rig': rig,
@@ -347,11 +351,15 @@ class Engine:
         return self._decorate(f, out, reason, fps, tele, rig), tele
 
     def info_lines(self, reason, tele, rig):
+        warn = []
+        if self.inset:
+            x0, y0, x1, y1 = self.inset
+            warn = [f'CAMERA SDI OVERLAYS ON: picture shrunk to {x1 - x0}x{y1 - y0} inside the frame - set the RED SDI output to Clean']
         if reason.startswith('held:'):
             secs = time.monotonic() - self.held_since if self.held_since else 0.0
             lines = [f'TRACKING LOST ({reason[5:]}) - holding last pose {secs:4.1f} s: background does not follow the camera',
                      'calibration: ' + rig.source + ('' if rig.qualified else '  (NOT QUALIFIED)')]
-            return lines, [(60, 60, 255), (0, 200, 255)]
+            return warn + lines, [(60, 60, 255)] * len(warn) + [(60, 60, 255), (0, 200, 255)]
         ok = reason == 'ok'
         head = 'REMA ' + {'split': 'output', 'overlay': 'grid overlay (registration check)', 'composite': 'composite'}[self.view]
         lines = [head + ('' if ok else '  -> FALLBACK: current RED frame'),
@@ -371,7 +379,7 @@ class Engine:
         elif self.matte_error:
             lines.append('matte unavailable: ' + self.matte_error[:60])
             colours.append((60, 60, 255))
-        return lines, colours
+        return warn + lines, [(60, 60, 255)] * len(warn) + colours
 
     def _decorate(self, f, out, reason, fps, tele, rig):
         left = f.image_bgr.copy()

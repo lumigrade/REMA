@@ -114,7 +114,7 @@ Step-by-step instructions: [docs/OPERATOR_GUIDE.md](docs/OPERATOR_GUIDE.md).
 | `tools/rig_live.py` | live engine + fullscreen operator view |
 | `tools/rig_record.py`, `tools/rig_nodal_offline.py`, `tools/rig_registration.py` | calibration recording, nodal solve, registration test |
 | `tools/alt_pose_bridge.cpp`, `tools/alt_rays_bridge.cpp`, `tools/alt_view.py` | Antilatency SDK bridges: 250 Hz pose, raw LED rays |
-| `tests/` | 149 unit tests (synthetic data; GPU tests skip without OpenGL 4.3) |
+| `tests/` | 150 unit tests (synthetic data; GPU tests skip without OpenGL 4.3) |
 | `calibration_targets/` | printable ChArUco boards |
 
 Earlier work (Orbbec-only prototype, guided depth calibration, room tracking) remains in `rema/` and `tools/` and is documented in [WORKLOG.md](WORKLOG.md).
