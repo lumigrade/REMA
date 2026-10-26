@@ -313,7 +313,7 @@
       "RED sensor crop and zoom/focus usage",
       "Antilatency installed SDK/Service and connection"
     ],
-    "private_requested": true,
+    "private_requested": false,
     "destination_gpu": "RTX 5070 (observed; earlier docs said 5080)",
     "destination_capture": "Osprey VB-USL Video Bridge (2ee4:00ef)",
     "destination_lens": "Canon 24-50 per user entry 2026-10-24 (earlier docs: Angenieux Optimo 28-76)",
@@ -322,7 +322,8 @@
     "upload_method": "Authenticated GitHub browser commits on main; CLI push unavailable",
     "local_checkpoint_commit": "d04cfb4",
     "local_history_note": "Local checkpoint and GitHub browser commits have separate histories. Clone GitHub main on the destination; do not force-push the source-host checkpoint.",
-    "portability_note": "All Python sources use rema/paths.py (REMA_ROOT/REMA_DATA/REMA_OUTPUTS env). Legacy Orbbec C++ tools still log to /home/pc/rema-data (same on this host). GPU UUIDs moved to host.json. Backup: /home/pc/rema-data/work/portability_backup_20261024_115353"
+    "portability_note": "All Python sources use rema/paths.py (REMA_ROOT/REMA_DATA/REMA_OUTPUTS env). Legacy Orbbec C++ tools still log to /home/pc/rema-data (same on this host). GPU UUIDs moved to host.json. Backup: /home/pc/rema-data/work/portability_backup_20261024_115353",
+    "repository_visibility": "PUBLIC since 2026-10-26 (user request); history scanned for secrets/binaries before publication"
   },
   "destination_host": {
     "inventoried_at": "2026-10-24T12:06:46.894289+07:00",
