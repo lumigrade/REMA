@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Launch one CPU-only interactive app, 4 GiB RAM, 4 CPU cores quota, 2-hour limit."""
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import os,subprocess,sys,shutil,json
 from pathlib import Path
-root=Path(__file__).resolve().parents[1];data=Path('/home/pc/rema-data');sdk=next((data/'deps/openni').glob('OpenNI*'))/'sdk'
+root=Path(__file__).resolve().parents[1];data=Path(str(_P.DATA));sdk=next((data/'deps/openni').glob('OpenNI*'))/'sdk'
 calibrating='--calibrate' in sys.argv
 preferences=data/'config/live_runtime.json'
 default_gpu=preferences.exists() and json.loads(preferences.read_text()).get('matte_backend')=='cuda'
 gpu=('--gpu' in sys.argv or default_gpu) and '--cpu' not in sys.argv and not calibrating
 unit='rema-calibration-gui' if calibrating else 'rema-live-gui'
 forward=[a for a in sys.argv[1:] if a not in ('--calibrate','--gpu','--cpu')]
-for v in [data,Path('/media/pc/WS_DATA')]:
+for v in [Path(v) for v in _P.RESERVE_VOLUMES]:
  if shutil.disk_usage(v).free<25*1024**3:sys.exit('25 GiB disk reserve failed')
 if subprocess.run(['systemctl','--user','is-active','--quiet',unit+'.service']).returncode==0:
  print('REMA is already running; select its window in the desktop.');sys.exit(0)

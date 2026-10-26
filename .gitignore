@@ -36,3 +36,6 @@ work/
 *.tar
 *.tar.gz
 *.tgz
+
+# VPcamtracking bundle: proprietary Antilatency SDK/Service binaries + private session history (restore copy lives in ~/Desktop/VPcamtracking)
+VPcamtracking/

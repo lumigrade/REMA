@@ -1,5 +1,7 @@
 # P0: working Linux capture paths
 
+> **Historical (source host, 2026-10-09).** Orbbec-only capture setup. On the rig host the Astra depth path is rebuilt from the official ros_astra_camera OpenNI2 redistributable; see [RIG_HOST.md](RIG_HOST.md).
+
 Updated 2026-10-09. Both legacy OpenNI2 and OrbbecSDK v1 capture real Astra Pro depth on this Ubuntu 24.04.5 x86_64/kernel 7.0 host. P0 remains incomplete because calibration and exposure alignment are unqualified.
 
 ## Working baseline

@@ -1,9 +1,10 @@
 """Optional native CPU registration, with the NumPy implementation as fallback."""
+from rema import paths as _P
 import ctypes
 from pathlib import Path
 import numpy as np
 
-_PATH=Path('/home/pc/rema-data/work/depth_projection.so')
+_PATH=Path(str(_P.DATA)+'/work/depth_projection.so')
 _library=None
 if _PATH.exists():
     _library=ctypes.CDLL(str(_PATH))

@@ -1,11 +1,12 @@
 """CPU temporal alpha + conservative, uncalibrated depth-assisted actor selection.
 No generated foreground colour: only alpha is used; composite keeps source RGB.
 """
+from rema import paths as _P
 import time,os
 import cv2
 import numpy as np
 import onnxruntime as ort
-MODEL='/home/pc/rema-data/models/rvm/rvm_mobilenetv3_fp32.onnx'
+MODEL=str(_P.DATA)+'/models/rvm/rvm_mobilenetv3_fp32.onnx'
 VERSION='rvm_mobilenetv3_fp32_v1.0.0+conservative_actor_v2'
 class TemporalMatte:
  def __init__(self,ratio=.375):

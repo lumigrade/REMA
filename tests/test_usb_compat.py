@@ -1,9 +1,10 @@
 """Exercise the interposer with a fake libusb; no real device is touched."""
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import os,pathlib,subprocess,tempfile,unittest
 class USBCompatibility(unittest.TestCase):
  def test_scope_bounds_and_errors(self):
-  with tempfile.TemporaryDirectory(dir='/home/pc/rema-data/work') as tmp:
-   root=pathlib.Path(tmp);include='/home/pc/rema-data/deps/libusb-legacy-src/libusb-1.0.9/libusb'
+  with tempfile.TemporaryDirectory(dir=str(_P.DATA)+'/work') as tmp:
+   root=pathlib.Path(tmp);include=str(_P.DATA)+'/deps/libusb-legacy-src/libusb-1.0.9/libusb'
    (root/'fake.c').write_text(r'''#include <libusb.h>
 #include <string.h>
 int mode=0,seen=0;
@@ -24,6 +25,6 @@ return 0;}
 ''')
    subprocess.run(['gcc','-shared','-fPIC','-I'+include,str(root/'fake.c'),'-o',str(root/'libusb-1.0.so.0')],check=True)
    subprocess.run(['gcc','-I'+include,str(root/'check.c'),'-L'+tmp,'-Wl,-rpath,'+tmp,'-l:libusb-1.0.so.0','-o',str(root/'check')],check=True)
-   env=dict(os.environ,LD_LIBRARY_PATH=tmp,LD_PRELOAD='/home/pc/rema-data/work/astra_usb_compat.so')
+   env=dict(os.environ,LD_LIBRARY_PATH=tmp,LD_PRELOAD=str(_P.DATA)+'/work/astra_usb_compat.so')
    result=subprocess.run([str(root/'check')],env=env,capture_output=True,text=True,timeout=5)
    self.assertEqual(result.returncode,0,result.stderr)

@@ -1,3 +1,4 @@
+from rema import paths as _P
 import ctypes as C
 import collections,threading,time
 from pathlib import Path
@@ -47,7 +48,7 @@ class Cameras:
   finally:
    if cap:cap.release()
  def capture_depth(self):
-  lib=C.CDLL('/home/pc/rema-data/work/openni_live_bridge.so')
+  lib=C.CDLL(str(_P.DATA)+'/work/openni_live_bridge.so')
   lib.rema_open.argtypes=[C.c_char_p,C.c_int];lib.rema_open.restype=C.c_void_p
   lib.rema_read.argtypes=[C.c_void_p,C.c_void_p,C.POINTER(C.c_uint64),C.POINTER(C.c_uint64),C.POINTER(C.c_float),C.c_char_p,C.c_int];lib.rema_read.restype=C.c_int
   lib.rema_close.argtypes=[C.c_void_p];lib.rema_close.restype=None

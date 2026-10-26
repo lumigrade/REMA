@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import os
 os.environ.setdefault('CUDA_VISIBLE_DEVICES','')
 os.environ.update(OMP_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',QT_QUICK_BACKEND='software',QT_XCB_GL_INTEGRATION='none',LIBGL_ALWAYS_SOFTWARE='1')
@@ -17,7 +18,7 @@ from rema.room_tracking import RoomTracker
 from rema.camera_controls import Controls
 from rema.matting import TemporalMatte,ActorMask,EmptyRoom,VERSION
 from rema.live_core import PersonModel,align_depth,select_person,grid,composite,depth_preview
-DATA=Path('/home/pc/rema-data');OUTPUT=Path('/home/pc/Documents/Codex/2026-10-09/rema/outputs')
+DATA=Path(str(_P.DATA));OUTPUT=Path(str(_P.OUTPUTS))
 def label(im,text,pos=(16,30),scale=.7):
  cv2.putText(im,text,pos,cv2.FONT_HERSHEY_SIMPLEX,scale,(0,0,0),4,cv2.LINE_AA)
  cv2.putText(im,text,pos,cv2.FONT_HERSHEY_SIMPLEX,scale,(238,238,238),1,cv2.LINE_AA)
@@ -231,7 +232,7 @@ class Window(QWidget):
   now=time.monotonic()
   if now-self.last_disk>5:
    self.last_disk=now
-   if any(shutil.disk_usage(v).free<25*1024**3 for v in [DATA,'/media/pc/WS_DATA']):self.engine.error='Disk reserve below 25 GiB'
+   if any(shutil.disk_usage(v).free<25*1024**3 for v in [str(v) for v in _P.RESERVE_VOLUMES]):self.engine.error='Disk reserve below 25 GiB'
   error=self.engine.error
   result=self.engine.result
   if result and now-result[3]>2:error=error or 'Camera/processing stalled'

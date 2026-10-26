@@ -1,7 +1,25 @@
 # REMA — moving-camera prototype plan
 
+> **Status 2026-10-26:** the rig plan below is being executed on the rig host. Current architecture, results and next steps: [docs/PROJECT_OUTLINE.md](docs/PROJECT_OUTLINE.md); operating instructions: [docs/OPERATOR_GUIDE.md](docs/OPERATOR_GUIDE.md). This file keeps the original plan and decision history.
+
 Date: 2026-10-09, Asia/Ho_Chi_Minh.
 Name: **Real-time Environment Matting and Anchoring**.
+
+## Destination host status (2026-10-24)
+
+Work continues on the rig host (see RIG_HOST.md). Confirmed: RTX 5070 12 GB (not 5080), Osprey VB-USL over UVC delivering a live RED picture at 1360×768 YUYV, but measured 14.8 fps against an advertised 25 fps, with a very dark signal. The Antilatency socket is present but needs a udev rule before the SDK can open it. The Astra Pro is not enumerating. VPcamtracking (alt2freed + Unreal-style lens/nodal calibration UI) is adopted as the Antilatency front end and calibration tool: REMA reads its raw tracker pose and its calibration profiles using the same frame conventions.
+
+Implemented device-independently: portable paths (`rema/paths.py`, host.json GPU inventory), direct V4L2 SDI capture with kernel sequence/timestamps and no-signal detection, pose history with interpolation to frame time, rig transform chain, metric grid/blocks renderer in the tracked world frame, live app with strict raw-RED fallback, native 250 Hz pose bridge source (unbuilt: no compiler on host).
+
+Revised next steps:
+1. User: udev rules + build tools (RIG_HOST.md), reconnect Astra Pro, check RED SDI output (frame rate, Rec.709 monitoring transform, exposure) and Osprey output configuration for full-rate 1080p.
+2. Milestone B: VPcamtracking lens + nodal solve on the actual Osprey frames; grid overlay registration check on pan/tilt/dolly/return-to-start; measure video-vs-pose delay with a fast pan (cross-correlate image motion with tracker angular velocity) and set `--video-delay-ms` from that measurement.
+3. Milestone C: RVM on RED frames on the 5070, then Astra depth reprojected into the RED view.
+4. Capture hardware decision: if the Osprey cannot deliver full-rate 1080p25 over USB, a PCIe SDI card (DeckLink-class) is the likely route for both frame rate and latency.
+
+### Background representation — recommendation (input to P5, not yet authorized work)
+
+Recommended primary background: **3D Gaussian Splatting**, rendered in-process on the RTX 5070 (e.g. gsplat CUDA rasterizer) from the same per-frame `camera_from_world`, K and distortion that drive the grid. Reasons: photoreal real locations from phone/drone capture; real-time at 1080p for scenes of a few million splats on this class of GPU; rendering inside REMA keeps pose, video frame and background in one synchronized step with no second video hop; splat depth later enables virtual foreground occlusion. Limits to plan for: views far outside the captured path degrade; lighting is baked, so the actor must be lit to match; the splat scene needs metric scale and floor alignment to the Antilatency world (measured references in the capture). Keep the grid/blocks scene permanently as the calibration and registration check. Alternative for CG sets: Unreal Engine driven by the existing alt2freed FreeD output, with REMA supplying the matte — more mature tooling but a second render/video path to synchronize. First 3DGS integration step can use an existing pre-trained .ply scene; scene optimization (training) is a separate decision under P5 and AGENTS.md (no training authorized for the first grid prototype).
 
 ## Current decision — Antilatency + RED rig (2026-10-12)
 

@@ -1,6 +1,7 @@
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import sys,time,json,subprocess
 from pathlib import Path
-sys.path.insert(0,'/media/pc/WS_DATA/!WORK/REMA')
+sys.path.insert(0,str(_P.ROOT))
 import numpy as np,cv2
 from rema.room_tracking import RoomTracker,inverse
 from rema.board_tracking import tracked_scene
@@ -11,7 +12,7 @@ texture=cv2.GaussianBlur(rng.integers(0,256,(480,640,3),dtype=np.uint8),(3,3),0)
 for i in range(120):
  x,y=rng.integers([10,10],[630,470]);cv2.circle(texture,(int(x),int(y)),int(rng.integers(3,10)),tuple(map(int,rng.integers(40,230,3))),-1)
 y,x=np.indices((480,640));rays=np.stack([(x-320)/K[0,0],(y-240)/K[1,1],np.ones_like(x)],axis=-1)
-output=Path('/home/pc/Documents/Codex/2026-10-09/rema/outputs/REMA_room_tracking_synthetic_motion.mp4')
+output=Path(str(_P.OUTPUTS)+'/REMA_room_tracking_synthetic_motion.mp4')
 proc=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-threads','2','-filter_threads','2','-f','rawvideo','-pixel_format','bgr24','-video_size','1280x480','-framerate','10','-i','pipe:0','-an','-c:v','libx264','-threads','2','-preset','veryfast','-crf','20','-pix_fmt','yuv420p','-movflags','+faststart','-y',str(output)],stdin=subprocess.PIPE)
 records=[]
 def label(im,s,y):
@@ -38,5 +39,5 @@ for i in range(120):
  proc.stdin.write(np.hstack([rgb,rendered]).tobytes())
 proc.stdin.close();assert proc.wait(timeout=30)==0
 valid=[r for r in records if r['valid']];report=dict(scope='Fully synthetic planar textured room, moving excluded foreground; not physical camera qualification',frames=len(records),tracked=len(valid),forced_loss_rejected=all(not r['valid'] for r in records if r['forced_loss']),p95_translation_error_m=float(np.percentile([r['translation_error_m'] for r in valid],95)),p95_rotation_error_deg=float(np.percentile([r['rotation_error_deg'] for r in valid],95)),processing_ms_p50=float(np.median([r['processing_ms'] for r in records])),video=str(output),frames_detail=records)
-Path('/home/pc/rema-data/reports/room_tracking_synthetic.json').write_text(json.dumps(report,indent=2));print(json.dumps({k:v for k,v in report.items() if k!='frames_detail'},indent=2))
+Path(str(_P.DATA)+'/reports/room_tracking_synthetic.json').write_text(json.dumps(report,indent=2));print(json.dumps({k:v for k,v in report.items() if k!='frames_detail'},indent=2))
 assert report['forced_loss_rejected'] and report['tracked']>=105 and report['p95_translation_error_m']<.025

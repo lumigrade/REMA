@@ -1,3 +1,4 @@
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import dataclasses, hashlib, json, pathlib, tempfile, unittest
 import numpy as np
 from rema.contracts import Frame, pair_frames, project_depth, validate_calibration, load_replay
@@ -24,7 +25,7 @@ class Contracts(unittest.TestCase):
  def test_nonmonotonic_rejected(self):
   with self.assertRaises(ValueError): pair_frames([self.frame(1,2),self.frame(0,1)],[self.frame(0,0,'depth')])
  def test_lossless_depth_replay_and_integrity(self):
-  with tempfile.TemporaryDirectory(dir='/home/pc/rema-data/work') as tmp:
+  with tempfile.TemporaryDirectory(dir=str(_P.DATA)+'/work') as tmp:
    p=pathlib.Path(tmp); depth=np.array([[0,1000],[2000,65535]],np.uint16); np.save(p/'depth.npy',depth)
    f=dataclasses.replace(self.frame(0,0,'depth'),payload='depth.npy',sha256=hashlib.sha256((p/'depth.npy').read_bytes()).hexdigest())
    (p/'frames.jsonl').write_text(json.dumps(dataclasses.asdict(f))+'\n'); self.assertEqual(load_replay(p),load_replay(p)); np.testing.assert_array_equal(np.load(p/'depth.npy'),depth)

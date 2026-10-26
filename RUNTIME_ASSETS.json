@@ -27,7 +27,7 @@
     "usage": "Diagnostic only; do not substitute unvalidated Y11 values for metric depth"
   },
   "antilatency": {
-    "installed_version": "pending destination inventory",
+    "installed_version": "SDK 4.6.2 / DeviceNetwork 9.3.8 (VPcamtracking bundle), AntilatencyService 4.6.2 Linux",
     "sample": "https://www.developers.antilatency.com/Software/Samples_en.html"
   },
   "source_data_sizes_approx": {
@@ -36,5 +36,11 @@
     "calibration": "152 MiB",
     "recordings": "2.6 GiB"
   },
-  "note": "Asset binaries and raw evidence are intentionally outside Git. Model/SDK licenses remain their respective owners. Rig recalibration required after mounting."
+  "note": "Asset binaries and raw evidence are intentionally outside Git. Model/SDK licenses remain their respective owners. Rig recalibration required after mounting.",
+  "openni_rig_host": {
+    "source": "https://github.com/orbbec/ros_astra_camera commit 210f530144314da7c70072215bacba12130d9b20, include/openni2 + include/openni2_redist/x64",
+    "libOpenNI2_sha256": "29e9cafea8fec360edf50f88e2afc5b4b793664d28b6d91e144095893f0efe17",
+    "liborbbec_sha256": "116aade45a425af1dbbf50c1afec227c415594b78a187bf9bd2c2254c56fee3e",
+    "libusb_header": "libusb v1.0.9 libusb.h sha256 99ccbb24..."
+  }
 }

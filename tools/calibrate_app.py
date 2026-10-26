@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """One-person, CPU-only measured RGB/depth calibration wizard."""
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import os
 os.environ.update(CUDA_VISIBLE_DEVICES='', QT_XCB_GL_INTEGRATION='none',
                   LIBGL_ALWAYS_SOFTWARE='1', OMP_NUM_THREADS='2', OPENBLAS_NUM_THREADS='2')
@@ -29,7 +30,7 @@ class CalibrationWorker:
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.commands = queue.Queue()
         self.cameras = None
-        profile_path=Path('/home/pc/rema-data/config/calibration_rgb.json')
+        profile_path=Path(str(_P.DATA)+'/config/calibration_rgb.json')
         self.rgb_profile=json.loads(profile_path.read_text()) if profile_path.exists() else None
         self.target_settings = {}
         settings_path=ROOT/'target_settings.json'
@@ -578,7 +579,7 @@ class Wizard(QWidget):
         now=time.monotonic()
         if now-self.last_disk>10:
             self.last_disk=now
-            if any(shutil.disk_usage(v).free<25*1024**3 for v in ['/home/pc/rema-data','/media/pc/WS_DATA']):self.close()
+            if any(shutil.disk_usage(v).free<25*1024**3 for v in [str(v) for v in _P.RESERVE_VOLUMES]):self.close()
         if now-self.started>7200:self.close()
 
     def return_live(self):
@@ -592,7 +593,7 @@ class Wizard(QWidget):
         event.accept()
 
 def main():
-    lock=Path('/home/pc/rema-data/locks/p0-cpu.lock').open('a');deadline=time.monotonic()+12
+    lock=Path(str(_P.DATA)+'/locks/p0-cpu.lock').open('a');deadline=time.monotonic()+12
     while True:
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);break
         except BlockingIOError:

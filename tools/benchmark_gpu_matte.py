@@ -1,8 +1,9 @@
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import os,sys,time,json,numpy as np
 from pathlib import Path
-sys.path.insert(0,'/media/pc/WS_DATA/!WORK/REMA')
+sys.path.insert(0,str(_P.ROOT))
 from rema.matting import TemporalMatte
-frames=[np.load('/home/pc/rema-data/recordings/rema_live_20261009_230803/'+str(i)+'.npz')['rgb'] for i in range(50)]
+frames=[np.load(str(_P.DATA)+'/recordings/rema_live_20261009_230803/'+str(i)+'.npz')['rgb'] for i in range(50)]
 report={};reference=[]
 for backend in ['cpu','cuda']:
  os.environ['REMA_MATTE_BACKEND']=backend;m=TemporalMatte()
@@ -15,4 +16,4 @@ for backend in ['cpu','cuda']:
  report[backend]=dict(providers=m.session.get_providers(),p50_ms=float(np.median(times)),p95_ms=float(np.percentile(times,95)),max_ms=max(times),mean_alpha_error=float(np.mean(errors)) if errors else 0)
  print(backend,report[backend],flush=True)
  del m
-Path('/home/pc/rema-data/reports/gpu_matte_benchmark.json').write_text(json.dumps(report,indent=2));assert report['cuda']['mean_alpha_error']<.002
+Path(str(_P.DATA)+'/reports/gpu_matte_benchmark.json').write_text(json.dumps(report,indent=2));assert report['cuda']['mean_alpha_error']<.002

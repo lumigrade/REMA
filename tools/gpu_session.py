@@ -2,17 +2,34 @@
 """One GPU owner, shared UUID locks, 4 GiB process VRAM watchdog, finite runtime.
 Run inside the existing RAM/CPU-capped systemd launcher. Never kills other jobs.
 """
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 import argparse,os,sys,subprocess,time,shutil,signal
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from rema.gpu_guard import reserve_gpu
-UUID='GPU-8ddc2281-7575-4d2a-962a-538850e1b60f'
+UUID=_P.host_config().get('live_gpu_uuid') or 'GPU-not-inventoried'
+def descendants(pid):
+ """pid plus all its descendant processes (from /proc), e.g. REMA's own ffmpeg NVENC encoder."""
+ children={}
+ for d in Path('/proc').iterdir():
+  if d.name.isdigit():
+   try:ppid=int((d/'stat').read_text().rsplit(')',1)[1].split()[1])
+   except (OSError,IndexError,ValueError):continue
+   children.setdefault(ppid,[]).append(int(d.name))
+ out,todo={pid},[pid]
+ while todo:
+  for c in children.get(todo.pop(),[]):
+   if c not in out:out.add(c);todo.append(c)
+ return out
+
 def violation(output,uuid,pid,cap=4096):
+ """pid: the session child pid or a set of allowed pids (the child and its descendants)."""
+ allowed=pid if isinstance(pid,(set,frozenset)) else {pid}
  total=0
  for line in output.splitlines():
   fields=[s.strip() for s in line.split(',')]
   if len(fields)!=3 or fields[0]!=uuid:continue
-  if int(fields[1])!=pid:return 'Another compute owner appeared; stopping only REMA'
+  if int(fields[1]) not in allowed:return 'Another compute owner appeared; stopping only REMA'
   total+=int(fields[2])
  return 'REMA process exceeded VRAM budget' if total>cap else None
 
@@ -28,9 +45,9 @@ def main():
   try:
    while child.poll() is None:
     if time.monotonic()>deadline:raise RuntimeError('GPU session runtime limit')
-    if any(shutil.disk_usage(v).free<25*1024**3 for v in ['/home/pc/rema-data','/media/pc/WS_DATA']):raise RuntimeError('Disk reserve below25GiB')
+    if any(shutil.disk_usage(v).free<25*1024**3 for v in [str(v) for v in _P.RESERVE_VOLUMES]):raise RuntimeError('Disk reserve below25GiB')
     q=subprocess.run(['nvidia-smi','--query-compute-apps=gpu_uuid,pid,used_memory','--format=csv,noheader,nounits'],capture_output=True,text=True,check=True,timeout=5)
-    error=violation(q.stdout,UUID,child.pid)
+    error=violation(q.stdout,UUID,descendants(child.pid))
     if error:raise RuntimeError(error)
     time.sleep(1)
    return child.returncode

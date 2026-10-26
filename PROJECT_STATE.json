@@ -2,27 +2,32 @@
   "project": "REMA",
   "expansion": "Real-time Environment Matting and Anchoring",
   "created_at": "2026-10-09T13:33:22.940462+07:00",
-  "root": "/media/pc/WS_DATA/!WORK/REMA",
+  "root": "/home/pc/Desktop/REMA (REMA_ROOT; see rema/paths.py)",
   "data_root": "/home/pc/rema-data",
-  "phase": "Architecture transition: Antilatency camera tracking + RED SDI compositing",
-  "status": "private_source_handoff_published_destination_setup_pending",
+  "phase": "P5 started (user-requested): 3DGS background drop-in with sample scene; RED SDI signal currently absent",
+  "status": "rig_host_capture_tracking_depth_live_calibration_pending",
   "authorization": "Create independent research project/session and plan for moving-camera actor preservation over a world-anchored floor grid and shaded blocks; first Orbbec RGB-D, later SDI main camera; no background training now",
   "pending": [
-    "Externalize host paths and rebuild/install dependencies on the destination; migrate source separately from raw evidence and runtime assets.",
-    "Integrate Antilatency pose provider and RED SDI; calibrate lens, Alt-to-RED, depth-to-RED and frame/pose timing.",
-    "Validate grid-only tracking, then RED RGB matting with Orbbec depth support and measured low-latency compositing."
+    "Move Antilatency socket off the bus-powered hub; replug Astra (absent since 13:55).",
+    "Restore RED SDI signal into the Osprey (currently colour bars after reboot/re-cabling).",
+    "Re-review composite after horizon fix and RVM ratio 0.5; edge leakage remains (needs depth or edge refinement).",
+    "Registration: ~3 px median (0.13-0.15 deg) at 1360x768, slow motion only; extend to faster motion and physical floor check; consider more LED markers near the rig position.",
+    "Astra: reseat USB (running at full speed since 12:27).",
+    "Identify the Alt on the RED handle; check Truss_1x1 height/origin against the room (ALT6 reads 0.034 m).",
+    "VPcamtracking lens + nodal solve on Osprey frames (ChArUco board); then grid registration test and video-vs-pose delay measurement.",
+    "RED SDI output frame rate/Rec.709/exposure and Osprey config (14.8 fps measured).",
+    "Astra-to-RED extrinsic calibration and depth reprojection."
   ],
   "assumptions": {
     "os": "Ubuntu",
     "gpus": [
-      "RTX 5080",
-      "RTX 3090"
+      "RTX 5070 12 GB (rig host)"
     ],
     "camera_moving": false,
     "runtime_local": true,
     "research_only": true,
     "camera_motion_note": "Marker-free RGB-D room tracking now live; physical motion accuracy not qualified",
-    "gpu_authorization": "2026-10-12 user reserves5080 for another project;3090 initiallyvacant but latest nvidia-smi shows computeowners on both. Current calibration is CPU-only; no REMA GPU admission attempted."
+    "gpu_authorization": "2026-10-24 rig host: single RTX 5070, no compute owners at inventory; admission via host.json + gpu_guard."
   },
   "initial_usb_observation": "lsusb did not identify an Orbbec; EMEET SmartCam S600 and other peripherals were listed. This does not identify a network-attached camera.",
   "hardware_validated": false,
@@ -82,7 +87,7 @@
       "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
     }
   },
-  "last_updated": "2026-10-12T16:03:14.486463+07:00",
+  "last_updated": "2026-10-24T12:15:18.715129+07:00",
   "scaffold": {
     "cpu_contract_tests": 105,
     "hardware_validation": false,
@@ -309,13 +314,490 @@
       "Antilatency installed SDK/Service and connection"
     ],
     "private_requested": true,
-    "destination_gpu": "RTX 5080",
-    "destination_capture": "Osprey SDI-USB, exact model pending",
-    "destination_lens": "Angenieux Optimo 28-76 mm",
+    "destination_gpu": "RTX 5070 (observed; earlier docs said 5080)",
+    "destination_capture": "Osprey VB-USL Video Bridge (2ee4:00ef)",
+    "destination_lens": "Canon 24-50 per user entry 2026-10-24 (earlier docs: Angenieux Optimo 28-76)",
     "source_uploaded": true,
     "private_verified": true,
     "upload_method": "Authenticated GitHub browser commits on main; CLI push unavailable",
     "local_checkpoint_commit": "d04cfb4",
-    "local_history_note": "Local checkpoint and GitHub browser commits have separate histories. Clone GitHub main on the destination; do not force-push the source-host checkpoint."
+    "local_history_note": "Local checkpoint and GitHub browser commits have separate histories. Clone GitHub main on the destination; do not force-push the source-host checkpoint.",
+    "portability_note": "All Python sources use rema/paths.py (REMA_ROOT/REMA_DATA/REMA_OUTPUTS env). Legacy Orbbec C++ tools still log to /home/pc/rema-data (same on this host). GPU UUIDs moved to host.json. Backup: /home/pc/rema-data/work/portability_backup_20261024_115353"
+  },
+  "destination_host": {
+    "inventoried_at": "2026-10-24T12:06:46.894289+07:00",
+    "hostname": "223",
+    "os": "Ubuntu 24.04.5, kernel 7.0.0-38-generic",
+    "gpu": {
+      "name": "RTX 5070",
+      "uuid": "GPU-f9996886-cdd6-6562-0889-f69d7ab8c164",
+      "vram_mib": 12227,
+      "driver": "595.99.02"
+    },
+    "host_config": "/home/pc/rema-data/config/host.json",
+    "toolchain_missing": [
+      "gcc/g++",
+      "git",
+      "ffmpeg",
+      "v4l2-ctl",
+      "system pip",
+      "passwordless sudo"
+    ],
+    "envs": {
+      "rig": "/home/pc/rema-data/envs/rig (numpy2.2.6, opencv-headless4.12.0.88, PySide6 6.8.3)",
+      "live-gpu": "/home/pc/rema-data/envs/live-gpu (requirements-live-gpu.lock minus CPU onnxruntime)"
+    },
+    "osprey": {
+      "model": "Osprey VB-USL Video Bridge",
+      "usb_id": "2ee4:00ef",
+      "link": "USB 5 Gbps",
+      "driver": "uvcvideo (kernel)",
+      "device": "/dev/video0",
+      "advertised_modes": [
+        {
+          "format": "YUYV",
+          "width": 1360,
+          "height": 768,
+          "fps": 25
+        }
+      ],
+      "no_input_pattern": "static 8-bar colour bars, ~14.7 fps (first probe 11:50)",
+      "red_feed_live": true,
+      "red_feed_first_seen": "2026-10-24T11:57+07:00",
+      "measured_fps": 14.78,
+      "interval_ms_p50_p95_max": [
+        60.0,
+        88.0,
+        88.1
+      ],
+      "driver_drops": 0,
+      "kernel_timestamp": "CLOCK_MONOTONIC start-of-frame (uvcvideo SOE), not RED exposure",
+      "kernel_to_app_ms_p50": 16.1,
+      "signal_level": "very dark: luma median ~13/255, p99 ~90",
+      "report": "/home/pc/rema-data/recordings/sdi_probe_20261024_115827/report.json",
+      "qualified": false
+    },
+    "antilatency": {
+      "device_access": true,
+      "udev": "/etc/udev/rules.d/90-antilatency.rules (plugdev 0660)",
+      "network": {
+        "socket": "AltHmdRadioSocket 9C583993CC8DF23B fw5.7.0 tag HMD2",
+        "tag": "AltTag F6DA7B6E6F40B40C ROOT",
+        "alts": {
+          "ALT6": {
+            "serial": "4C0046001951383039383438",
+            "firmware": "4.0.1",
+            "result": "Tracking6Dof, Alt +Z vertical (faces ceiling), W position [0.485,-1.628,0.034] m"
+          },
+          "ALT5": {
+            "serial": "460032000451343433363332",
+            "firmware": "4.5.0",
+            "result": "Tracking3Dof only in 10 s run"
+          }
+        }
+      },
+      "bridge": "built /home/pc/rema-data/work/alt_pose_bridge; 250 Hz, dt p50 4.0 ms; one task restart during initialization in first run",
+      "environment": "Truss_1x1, LED height changed by user to 4.665 m (was 3.575 m) 2026-10-24",
+      "question": "Which Alt is on the RED handle; ALT6 height 0.034 m contradicts a handle mount unless environment origin/height differs from the room",
+      "nodal_solved": false,
+      "alt6_check_after_height": {
+        "W_position_m": [
+          0.502,
+          -1.603,
+          1.119
+        ],
+        "quality": 0.027,
+        "noise_std_mm": [
+          1.4,
+          0.67,
+          2.56
+        ],
+        "inside_marker_square": false
+      },
+      "alt6_optical_view": {
+        "recording": "/home/pc/rema-data/recordings/alt_view_20261024_140644",
+        "tools": [
+          "tools/alt_rays_bridge.cpp",
+          "tools/alt_view.py"
+        ],
+        "optical_fps": 84.2,
+        "leds_per_frame_p50": 12,
+        "leds_total": 12,
+        "ray_vs_expected_deg_p50_p95": [
+          0.113,
+          0.16
+        ],
+        "distance_m": [
+          3.55,
+          4.77
+        ],
+        "note": "consistency check, not absolute accuracy"
+      },
+      "dropouts": "ALT6 disconnects observed 3x on 2026-10-24 (7.7 s, ~2 s, 8.3 s); check battery/radio/Tag",
+      "usb_brownouts_2026_10_26": {
+        "device": "AltHmdRadioSocket 1-7.3 on bus-powered Genesys hub 1-7 (100 mA) with mouse; socket requests 500 mA",
+        "disconnects": "~15 between 13:53 and 13:55",
+        "action": "move socket to motherboard port or powered hub"
+      }
+    },
+    "astra_pro": {
+      "enumerated": true,
+      "at": "2026-10-24T12:11:37+07:00",
+      "rgb": "/dev/video2 (YUYV/MJPG up to 1280x720)",
+      "firmware": "5.8.22",
+      "openni": "/home/pc/rema-data/deps/ros_astra_camera_210f530 (official orbbec/ros_astra_camera commit 210f530, x64 redist, libOpenNI2 sha256 29e9cafe...)",
+      "capture": "/home/pc/rema-data/recordings/astra_20261024_121258_036348",
+      "depth_frames": 298,
+      "depth_fps": 29.7,
+      "sequence_gaps": 0,
+      "valid_fraction_p50": 0.764,
+      "range_mm_p5_p50_p95": [
+        2089,
+        3330,
+        6368
+      ],
+      "deterministic_replay": true,
+      "factory_calibration": "nonfinite (unchanged)",
+      "video": "astra_rgb_depth.mp4",
+      "qualified": false,
+      "usb_issue": "Re-enumerated 12:27 at full speed (12 Mbit/s): RGB 640x480 unavailable; reseat cable/port",
+      "status_2026_10_26": "disconnected 13:55:24, failed to re-enumerate (-71); replug needed"
+    },
+    "devices_2026_10_26": {
+      "osprey": "/dev/video2 (USB port 9, 5 Gbps)",
+      "astra_rgb": "/dev/video0",
+      "selection": "by card name (rema.sdi_capture.find_video_device)",
+      "osprey_signal": "colour bars (no RED SDI input) at 13:33"
+    }
+  },
+  "rig_pipeline": {
+    "version": "rig_live_v1",
+    "modules": {
+      "paths": "rema/paths.py",
+      "sdi_capture": "rema/sdi_capture.py",
+      "pose": "rema/pose.py",
+      "renderer": "rema/virtual_scene.py",
+      "video": "rema/video_out.py"
+    },
+    "tools": {
+      "probe": "tools/probe_sdi.py",
+      "live": "tools/rig_live.py",
+      "pose_bridge_source": "tools/alt_pose_bridge.cpp (unbuilt, needs g++)",
+      "bridge_build": "tools/build_alt_bridge.sh"
+    },
+    "pose_sources": [
+      "alt2freed --json (raw tp/tq, ~30 Hz, pipe arrival time)",
+      "alt_pose_bridge (250 Hz, SDK-query CLOCK_MONOTONIC)",
+      "FreeD UDP (untrusted: no stage/time)",
+      "synthetic (labelled demo)"
+    ],
+    "calibration_source": "VPcamtracking profile (lens K/dist + nodal T_tracker_cam), else provisional 60 deg HFOV, labelled NOT QUALIFIED",
+    "fallback": "invalid/stale/missing pose or no SDI signal -> current RED frame with reason",
+    "video_delay_ms": "0 assumed, UNMEASURED",
+    "tests": {
+      "total": 134,
+      "passed": 133,
+      "skipped": 1,
+      "note": "see WORKLOG"
+    },
+    "live_runs": {
+      "alt2freed_no_device": "/home/pc/rema-data/recordings/rig_live_20261024_120342 (69/69 frames clean fallback no_pose_samples)",
+      "synthetic_overlay": "/home/pc/rema-data/recordings/rig_live_20261024_120353 (183/183 rendered, 0 drops, proc p50 28.6 ms CPU, SYNTHETIC POSE)",
+      "real_alt6_overlay": "/home/pc/rema-data/recordings/rig_live_20261024_121338 (198/202 rendered with real tracking, 4 init frames rejected; proc p50 27.3 ms; no nodal calibration so overlay does not register)"
+    },
+    "hardware_validated": false,
+    "pose_validated": false,
+    "calibration_qualified": false,
+    "latency_validated": false,
+    "matting_gpu": {
+      "env": "/home/pc/rema-data/envs/live-gpu",
+      "gpu": "RTX 5070",
+      "model": "RVM mobilenetv3 fp32 v1.0.0 (sha256 verified)",
+      "ms_p50_p95": [
+        9.03,
+        9.23
+      ],
+      "cpu_ms_p50": 47.7,
+      "frames": "120 real RED 1360x768, no actor",
+      "report": "/home/pc/rema-data/reports/rvm_rtx5070_benchmark.json",
+      "quality_validated": false
+    },
+    "live_composite": {
+      "command": "~/rema-data/envs/live-gpu/bin/python tools/gpu_session.py --seconds 3600 -- ~/rema-data/envs/live-gpu/bin/python tools/rig_live.py --pose bridge --alt-serial 4C0046001951383039383438 --profile ~/rema-data/calibration/rig/RED_VRaptor_Optimo2876_ALT6_rema.json --matte cuda --view composite --seconds 3600",
+      "timing_ms": {
+        "render_p50": 1.6,
+        "matte_p50": 9.3,
+        "processing_p50_p95": [
+          27.4,
+          31.9
+        ],
+        "sof_to_output_p50_p95": [
+          55.3,
+          67.6
+        ]
+      },
+      "vram_mib": 546,
+      "actor_quality_reviewed": false,
+      "depth_assist": false,
+      "matte_ratio": 0.5,
+      "first_review": {
+        "session": "/home/pc/rema-data/recordings/rig_live_20261024_144819",
+        "frames": 3766,
+        "composited": 3749,
+        "defects": [
+          "horizon staircase (fixed)",
+          "edge leakage of bright background dots; arm-torso gap trace (open)"
+        ],
+        "actor_quality_reviewed": "first pass by assistant from clip; no user acceptance"
+      },
+      "second_review": {
+        "session": "/home/pc/rema-data/recordings/rig_live_20261024_150343",
+        "frames": 1204,
+        "composited": 1082,
+        "horizon_fixed": true,
+        "alt6_dropout_s": 8.3,
+        "residual": "elbow fringe over bright background"
+      }
+    },
+    "operator_view": {
+      "entry": "tools/rig_live.py (GUI default)",
+      "layout": "fullscreen clean composite; top-right PiPs camera + Astra depth (10% screen width each)",
+      "keys": {
+        "I": "info on/off",
+        "R": "record take on/off",
+        "V": "composite/overlay",
+        "F": "fullscreen",
+        "Q": "quit"
+      },
+      "takes": "~/Desktop/Take<N>_<YYYYmmdd_HHMMSS>.mp4, H.265 hevc_nvenc, metadata in /home/pc/rema-data/recordings/takes",
+      "tracking_bar": "rema.pose.tracking_quality (stage x freshness x min(jitter, sdk))",
+      "depth_pip": "raw Astra view via tools/astra_depth_helper.py",
+      "tracking_loss_policy": "hold (default, flagged) | raw",
+      "depth_reconnect": "helper restarted with back-off; PiP shows NO DEPTH"
+    }
+  },
+  "background_recommendation": "3DGS rendered in-process on RTX 5070 from per-frame pose; grid/blocks kept as calibration scene; Unreal via FreeD as CG alternative. P5 decision, no training authorized yet.",
+  "calibration_rig": {
+    "tool": "VPcamtracking calib UI (envs/vpcam, OpenCV 4.6 contrib)",
+    "url": "http://127.0.0.1:8090/calib",
+    "profile": "RED_VRaptor_Optimo2876_ALT6 (lens field now Canon 24-50)",
+    "board": {
+      "type": "ChArUco 10x7",
+      "square_m": 0.025,
+      "marker_m": 0.0185,
+      "dictionary": "DICT_4X4_100",
+      "source": "existing REMA print (user measured 25.0 mm earlier)"
+    },
+    "lens_info_user": {
+      "focal_mm": 24.0,
+      "focus_m": 0.8,
+      "sensor_mm": [
+        28.8,
+        16.2
+      ]
+    },
+    "alt": "ALT6 4C0046001951383039383438",
+    "lens_solved": true,
+    "nodal_solved": true,
+    "lens": {
+      "samples": 12,
+      "rms_px": 0.881,
+      "per_view_max_px": 2.23,
+      "fx_fy": [
+        1174.3,
+        1178.4
+      ],
+      "cx_cy": [
+        678.1,
+        390.9
+      ],
+      "dist": [
+        -0.2979,
+        0.1255,
+        0.0001,
+        0.0002,
+        0.0
+      ],
+      "hfov_deg": 60.15,
+      "size": [
+        1360,
+        768
+      ],
+      "heldout_evaluated": false
+    },
+    "vpcam_nodal_failure": "OpenCV calibrateRobotWorldHandEye Shah: determinant(R) is null (16 samples, not persisted by UI)",
+    "nodal_tool": {
+      "solver": "rema/nodal.py",
+      "capture": "tools/rig_nodal.py",
+      "sessions": "/home/pc/rema-data/calibration/rig/nodal_<stamp>",
+      "rig_profile_out": "/home/pc/rema-data/calibration/rig/<profile>_rema.json",
+      "synthetic_tests": 7
+    },
+    "lens_34view": {
+      "file": "/home/pc/rema-data/calibration/rig/lens_34view.json",
+      "views": 34,
+      "heldout_median_px": 0.337,
+      "heldout_p95_px": 0.625,
+      "heldout_max_px": 0.681,
+      "fit_rms_px": 0.628,
+      "K": [
+        [
+          1173.6,
+          0,
+          679.2
+        ],
+        [
+          0,
+          1178.1,
+          387.1
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "dist": [
+        -0.2992,
+        0.1275,
+        0.0003,
+        0.0004,
+        0.0
+      ],
+      "qualified": false
+    },
+    "nodal_attempt_live": {
+      "session": "/home/pc/rema-data/calibration/rig/nodal_20261024_125727",
+      "samples": 22,
+      "usable": false,
+      "reason": "hand-held board + pan-only camera motion; board must be fixed"
+    },
+    "recorder": {
+      "record": "tools/rig_record.py",
+      "solve": "tools/rig_nodal_offline.py",
+      "test_recording": "/home/pc/rema-data/recordings/rig_rec_20261024_133147"
+    },
+    "alt6_still_noise": {
+      "std_mm": [
+        0.93,
+        0.43,
+        0.56
+      ],
+      "peak_mm": 2.38,
+      "rot_deg": 0.054,
+      "quality": 0.026
+    },
+    "nodal_attempt_recorded": {
+      "recording": "/home/pc/rema-data/recordings/rig_rec_20261024_133432",
+      "positions": 14,
+      "samples_used": 10,
+      "rejected": {
+        "tracker_not_6dof": [
+          2,
+          4
+        ],
+        "camera_moved": [
+          8,
+          9
+        ]
+      },
+      "settled_tail_used_for": [
+        3,
+        5,
+        10,
+        12,
+        14
+      ],
+      "fit_rms_px_median_max": [
+        4.28,
+        8.6
+      ],
+      "heldout_rms_px_median_max": [
+        11.37,
+        11.61
+      ],
+      "offset_cm": 21.3,
+      "camera_vs_alt_deg": 88.5,
+      "diversity": {
+        "max_deg": 47,
+        "axis_spread": 0.49
+      },
+      "tracker_translation_span_m": [
+        0.104,
+        0.012,
+        0.144
+      ],
+      "video_delay_estimate_ms": "20-80 (motion cross-correlation peak 80 ms, r=0.86; image/tracker speed ratio 1.01)",
+      "findings": [
+        "Image drifts up to ~10 px for 1-2 s after each move while ALT6 is still and background moves with the board: lens optical image stabilisation re-centring (Canon 24-50, presumably RF IS STM).",
+        "ALT6 disconnected twice (one 7.7 s gap).",
+        "ALT6 at x 0.49, y -1.63 m vs marker square +-1.54 m: rig at the edge of the Truss_1x1 marker square, 3.55 m below markers."
+      ],
+      "rig_profile": "/home/pc/rema-data/calibration/rig/RED_VRaptor_Optimo2876_ALT6_rema.json (PROVISIONAL)",
+      "qualified": false
+    },
+    "nodal_current": {
+      "recording": "/home/pc/rema-data/recordings/rig_rec_20261024_141303",
+      "method": "rotation_first",
+      "samples": 13,
+      "heldout_mm_deg_median": [
+        7.7,
+        0.208
+      ],
+      "heldout_deg_max": 0.249,
+      "offset_cm": 17.3,
+      "camera_vs_alt_deg": 89.9,
+      "rigidity_pairs_median_deg": 0.06,
+      "profile": "/home/pc/rema-data/calibration/rig/RED_VRaptor_Optimo2876_ALT6_rema.json",
+      "qualified": false,
+      "live_overlay": "/home/pc/rema-data/recordings/rig_live_20261024_142819"
+    },
+    "video_delay_ms": {
+      "value": 80,
+      "source": "registration delay sweep on rig_rec_20261024_141303 + motion cross-correlation",
+      "scope": "software clocks, not glass-to-glass"
+    },
+    "registration_tool": "tools/rig_registration.py",
+    "registration_test_1": {
+      "recording": "/home/pc/rema-data/recordings/rig_reg_20261024_143712",
+      "board_frames": 442,
+      "frames": 750,
+      "video_delay_ms": 76,
+      "still_px_p50_p95": [
+        3.15,
+        7.51
+      ],
+      "slow_px_p50_p95": [
+        2.6,
+        6.44
+      ],
+      "deg_p50": [
+        0.154,
+        0.127
+      ],
+      "fast_motion_coverage": false,
+      "board_pose": "re-estimated from same take (board moved to ~2 m)",
+      "qualified": false
+    }
+  },
+  "background_3dgs": {
+    "renderer": "rema/splat.py (OpenGL 4.3 EGL, EWA instanced quads, SH0, per-frame 16-bit radix sort, lens remap)",
+    "tests": "tests/test_splat.py (6)",
+    "sample_scene": {
+      "file": "/home/pc/rema-data/scenes/samples/train.splat",
+      "splats": 1026508,
+      "sha256": "d371f544e9e6a0a10b4a9d75c48d66f3c47f484559c33883c33c97ad7d2aa6af",
+      "source": "Inria 3DGS Tanks&Temples train via huggingface cakewalk/splat-data",
+      "license": "research use"
+    },
+    "alignment": "/home/pc/rema-data/scenes/samples/train_align.json (scale 2.75 m/unit ASSUMED from locomotive height; placed 10 m along camera heading; stage cleared r 3.5 m)",
+    "perf_ms": {
+      "render_1360x768_1M": 11.2,
+      "sort": 6.9,
+      "live_background_p50": 16.2,
+      "live_processing_p50": 41.5
+    },
+    "live": "rig_live --background splat; not yet run on RED (no SDI signal)",
+    "training": "none (pre-trained sample only)"
   }
 }

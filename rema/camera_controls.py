@@ -1,7 +1,8 @@
 """Only enumerated exact-Astra UVC controls, checked readback and restoration."""
+from rema import paths as _P
 import subprocess,re,json
 from pathlib import Path
-ROOT=Path('/home/pc/rema-data/calibration')
+ROOT=Path(str(_P.DATA)+'/calibration')
 def astra_device():
  for p in sorted(Path('/sys/class/video4linux').glob('video*')):
   for parent in (p/'device').resolve().parents:

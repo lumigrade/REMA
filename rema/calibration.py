@@ -3,10 +3,11 @@ R,t map IR/depth camera (x right,y down,z forward, metres) into RGB camera.
 Native depth is axial z in metres. Infrared-to-depth pixel equivalence is tested,
 not silently assumed. Raw RGB stays distorted; projection applies RGB distortion.
 """
+from rema import paths as _P
 from pathlib import Path
 import json,time
 import cv2,numpy as np
-ROOT=Path('/home/pc/rema-data/calibration');ROOT.mkdir(exist_ok=True)
+ROOT=Path(str(_P.DATA)+'/calibration');ROOT.mkdir(exist_ok=True)
 SIZE=(640,480)
 def board(square=.025):
  return cv2.aruco.CharucoBoard((10,7),float(square),float(square)*.74,cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_100))

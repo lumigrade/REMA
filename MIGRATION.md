@@ -1,5 +1,7 @@
 # Continue REMA on the Antilatency Ubuntu machine
 
+> **Historical (2026-10-12 handoff).** Migration to the rig host is complete; the destination turned out to have an RTX 5070, an Osprey VB-USL and a Canon 24-50. Current setup: [RIG_HOST.md](RIG_HOST.md).
+
 The user selected Antilatency as the camera-pose source. Further ORB/RGB-D self-tracking tuning is no longer the primary task. Read AGENTS.md, the current decision at the top of PLAN_REMA.md, PROJECT_STATE.json, and the latest WORKLOG.md before implementation.
 
 ## Confirmed destination rig

@@ -27,7 +27,7 @@ int main(int argc,char** argv){
  fs::path out;bool created_out=false;
  try{
   if(argc<3)throw runtime_error("usage: astra_capture OUTPUT_DIR SECONDS [RGB_DEVICE] ; 0 seconds = inventory only");
-  out=argv[1]; int seconds=stoi(argv[2]);ck(seconds>=0&&seconds<=60,"duration range 0..60");
+  out=argv[1]; int seconds=stoi(argv[2]);ck(seconds>=0&&seconds<=300,"duration range 0..300");
   ck(!fs::exists(out),"refusing existing output");fs::create_directories(out);created_out=true;
   openni::OpenNI::setLogOutputFolder("/home/pc/rema-data/logs");openni::OpenNI::setLogMinSeverity(0);openni::OpenNI::setLogFileOutput(true);ck(openni::OpenNI::initialize()==openni::STATUS_OK,"OpenNI initialize");
   openni::Array<openni::DeviceInfo> list;openni::OpenNI::enumerateDevices(&list);string uri;

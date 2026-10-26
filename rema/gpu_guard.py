@@ -1,17 +1,20 @@
-"""GPU admission guard: physical UUID ownership, legacy shared locks, no contention.
+"""GPU admission guard: physical UUID ownership, optional shared locks, no contention.
+Inventoried UUIDs come from $REMA_DATA/config/host.json ("gpus": {uuid: {"shared_locks": [...]}}).
+Other projects' shared lock files are respected whenever their directory exists on this host.
 CPU fallback remains available. GPU sessions also enforce a runtime VRAM watchdog.
 """
+from rema import paths as _P
 import contextlib, fcntl, pathlib, subprocess
-GPU_LOCKS={
- 'GPU-653546c9-e49d-2a25-bd0e-1c8da819d062':['gpu0.lock'],
- 'GPU-8ddc2281-7575-4d2a-962a-538850e1b60f':['gpu1.lock','gpu1_eval.lock'],
-}
+def gpu_locks():
+ return {u:list(v.get('shared_locks',[])) for u,v in _P.host_config().get('gpus',{}).items()}
 @contextlib.contextmanager
 def reserve_gpu(uuid):
- if uuid not in GPU_LOCKS: raise ValueError('physical GPU UUID not inventoried')
+ locks=gpu_locks()
+ if uuid not in locks: raise ValueError('physical GPU UUID not inventoried in '+str(_P.HOST_CONFIG))
  with contextlib.ExitStack() as stack:
-  files=[pathlib.Path('/home/pc/rema-data/locks')/(uuid+'.lock')]
-  files.extend(pathlib.Path('/home/pc/vto-data/locks')/n for n in GPU_LOCKS[uuid])
+  _P.LOCKS.mkdir(parents=True,exist_ok=True)
+  files=[_P.LOCKS/(uuid+'.lock')]
+  if _P.SHARED_LOCKS.is_dir(): files.extend(_P.SHARED_LOCKS/n for n in locks[uuid])
   for i,p in enumerate(files):
    f=stack.enter_context(p.open('a' if i==0 else 'r'))
    try: fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)

@@ -1,11 +1,12 @@
 """CPU prototype: semantic person mask, approximate depth association, static grid.
 Depth units: metres. No calibrated reprojection, exposure synchronization or pose.
 """
+from rema import paths as _P
 import cv2
 import numpy as np
 cv2.setNumThreads(2)
 cv2.ocl.setUseOpenCL(False)
-MODEL='/home/pc/rema-data/models/pphumanseg/human_segmentation_pphumanseg_2023mar.onnx'
+MODEL=str(_P.DATA)+'/models/pphumanseg/human_segmentation_pphumanseg_2023mar.onnx'
 class PersonModel:
  def __init__(self):
   self.net=cv2.dnn.readNet(MODEL)

@@ -1,6 +1,7 @@
+import sys as _sys, pathlib as _pl; _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[1])); from rema import paths as _P
 from pathlib import Path
 import subprocess
-base=Path('/home/pc/rema-data')
+base=Path(str(_P.DATA))
 sdk=next((base/'deps/openni').glob('OpenNI*'))/'sdk'
 subprocess.run(['g++','-std=c++17','-O2','-pthread','tools/astra_capture.cpp','-I'+str(sdk/'Include'),'-L'+str(sdk/'libs'),'-Wl,-rpath,'+str(sdk/'libs'),'-lOpenNI2','-o',str(base/'work/astra_capture')],check=True)
 
