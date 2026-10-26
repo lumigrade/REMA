@@ -66,7 +66,13 @@ Known limits right now: the Osprey VB-USL delivers only 1360×768 at ~14.8 fps o
 
 ## Quick start (rig host)
 
-The rig host setup (drivers, udev rules, Python environments) is in [RIG_HOST.md](RIG_HOST.md). With everything connected:
+<img src="docs/media/rema_icon.png" width="72" align="left">
+
+**Desktop app:** `tools/install_desktop_app.sh` adds **REMA Live** to the GNOME Dash. One click runs pre-flight checks (Osprey signal, tracking socket, Astra) and opens the fullscreen operator view; problems are reported as desktop notifications.
+
+<br clear="left">
+
+The rig host setup (drivers, udev rules, Python environments) is in [RIG_HOST.md](RIG_HOST.md). Manual start with everything connected:
 
 ```bash
 cd ~/Desktop/REMA

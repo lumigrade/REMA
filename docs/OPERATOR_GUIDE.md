@@ -39,6 +39,10 @@ Board fixed ~2 m away; follow the prompts (pan, tilt, dolly, faster moves). Repo
 
 ## 3. Live session
 
+**Easiest:** click **REMA Live** in the Dash (install once with `tools/install_desktop_app.sh`). It checks the Osprey signal, the tracking socket (warns if it is on a hub) and the Astra, then opens the operator view; a second click only reports that REMA is already running. Session log: `~/rema-data/logs/rema_app.log`. Optional overrides (profile, scene, alignment, background): `~/rema-data/config/rema_app.json`.
+
+Manual start:
+
 ```bash
 ~/rema-data/envs/live-gpu/bin/python tools/gpu_session.py --seconds 3600 -- \
   ~/rema-data/envs/live-gpu/bin/python tools/rig_live.py --pose bridge \

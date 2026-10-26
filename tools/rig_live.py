@@ -440,6 +440,8 @@ def run_gui(engine, a, out_dir):
         depth = DepthStream()
         depth.start()
     app = QApplication(sys.argv)
+    app.setApplicationName('REMA')            # X11 window class 'REMA' -> grouped under the Dash icon (StartupWMClass)
+    app.setDesktopFileName('rema')
 
     class View(QWidget):
         def __init__(self):
