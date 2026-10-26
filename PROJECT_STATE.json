@@ -87,7 +87,7 @@
       "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
     }
   },
-  "last_updated": "2026-10-26T15:27:16+07:00",
+  "last_updated": "2026-10-26T15:33:16+07:00",
   "scaffold": {
     "cpu_contract_tests": 105,
     "hardware_validation": false,
@@ -812,5 +812,12 @@
     "date": "2026-10-26T15:27:16+07:00",
     "rec_indicator": "red circle top left, always visible while recording",
     "saved_notification": "3 s centre glass notification with file name and folder"
+  },
+  "tracker_dropouts": {
+    "date": "2026-10-26T15:33:16+07:00",
+    "finding": "ALT6 radio/SDK disconnects (~8 s each) not caused by recording; controlled 4-take test 0 dropouts",
+    "fix": "alt_pose_bridge rescans every 100 ms after task end; disconnect events timestamped with node state; telemetry pose_reader_max_lag_ms",
+    "verified": "normal tracking and recording verified; faster recovery awaits a real dropout",
+    "hardware_next": "Antilatency socket on direct port + USB extension with line of sight; Astra off hub 1-7"
   }
 }

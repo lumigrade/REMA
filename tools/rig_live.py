@@ -69,6 +69,11 @@ class SubprocessPose(PoseSource):
         super().__init__(history)
         self.cmd, self.parser, self.proc = cmd, parser, None
         self.events = []
+        self.max_lag_ms = 0.0               # worst sample arrival lag since the last telemetry read (reader-starvation check)
+
+    def take_max_lag_ms(self):
+        v, self.max_lag_ms = self.max_lag_ms, 0.0
+        return round(v, 2)
 
     def run(self):
         try:
@@ -84,6 +89,8 @@ class SubprocessPose(PoseSource):
                 break
             s = self.parser(line, now) if self.parser is P.parse_alt2freed_json else self.parser(line)
             if s is not None:
+                if s.clock == 'sdk_query_monotonic':
+                    self.max_lag_ms = max(self.max_lag_ms, (now - s.t_ns) / 1e6)
                 self.push(s)
                 self.status = f'{s.stage} q={s.quality:.2f}'
             elif line.strip():
@@ -342,6 +349,8 @@ class Engine:
         else:
             quality, why = 0.0, 'no tracker'
         tele['picture_inset'] = list(self.inset) if self.inset else None
+        if hasattr(self.pose, 'take_max_lag_ms'):
+            tele['pose_reader_max_lag_ms'] = self.pose.take_max_lag_ms()
         tele['tracking_quality'] = round(quality, 3)
         tele['tracking_quality_reason'] = why
         self.last = {'frame': f, 'out': out, 'reason': reason, 'fps': fps, 'tele': tele, 'rig': rig,

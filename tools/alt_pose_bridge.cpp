@@ -84,24 +84,36 @@ int main(int argc, char** argv) {
 
         AT::ITrackingCotask task;
         uint32_t lastUpdate = UINT32_MAX;
+        auto nextScan = std::chrono::steady_clock::now();
         const Antilatency::Math::floatP3Q identity{{0, 0, 0}, {0, 0, 0, 1}};
         const auto period = std::chrono::nanoseconds((long long)(1e9 / rate));
         auto next = std::chrono::steady_clock::now();
         while (running) {
             next += period;
             if (task != nullptr && task.isTaskFinished()) {
-                std::printf("{\"event\":\"disconnected\"}\n");
+                // Log when and how the SDK ended the task, then rescan straight away: waiting for the network
+                // update id to change cost ~8 s per dropout when the node was still present.
+                int present = 0, idle = 0;
+                for (auto node : ctor.findSupportedNodes(net)) {
+                    if (!serial.empty() && prop(net, node, "sys/HardwareSerialNumber") != serial) continue;
+                    ++present;
+                    if (net.nodeGetStatus(node) == DN::NodeStatus::Idle) ++idle;
+                }
+                std::printf("{\"event\":\"disconnected\",\"t_ns\":%lld,\"node_present\":%d,\"node_idle\":%d}\n", mono_ns(), present, idle);
                 task = {};
+                lastUpdate = UINT32_MAX;
             }
             auto upd = net.getUpdateId();
-            if (task == nullptr && upd != lastUpdate) {
+            const auto now = std::chrono::steady_clock::now();
+            if (task == nullptr && (upd != lastUpdate || now >= nextScan)) {
                 lastUpdate = upd;
+                nextScan = now + std::chrono::milliseconds(100);
                 for (auto node : ctor.findSupportedNodes(net)) {
                     if (net.nodeGetStatus(node) != DN::NodeStatus::Idle) continue;
                     auto sn = prop(net, node, "sys/HardwareSerialNumber");
                     if (!serial.empty() && sn != serial) continue;
                     task = ctor.startTask(net, node, environment);
-                    std::printf("{\"event\":\"tracking\",\"serial\":\"%s\",\"firmware\":\"%s\"}\n", sn.c_str(),
+                    std::printf("{\"event\":\"tracking\",\"t_ns\":%lld,\"serial\":\"%s\",\"firmware\":\"%s\"}\n", mono_ns(), sn.c_str(),
                                 prop(net, node, "sys/FirmwareVersion").c_str());
                     break;
                 }
