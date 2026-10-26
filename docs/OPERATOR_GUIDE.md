@@ -52,7 +52,7 @@ Manual start:
 ```
 
 - Fullscreen clean composite; camera and depth picture-in-pictures top right.
-- **R** record take, **I** text/indicators on/off, **V** composite/overlay, **F**/**Esc** fullscreen, **Q** quit.
+- **R** record take (red circle top left while recording; on stop a 3 s centre notification shows the saved file name), **I** text/indicators on/off (recording circle and notification stay), **V** composite/overlay, **F**/**Esc** fullscreen, **Q** quit.
 - Takes: `~/Desktop/Take<N>_<YYYYmmdd_HHMMSS>.mp4` (H.265 via NVENC, clean composite, 25 fps real-time timeline). Metadata (settings, held-pose frame count, encoder status): `~/rema-data/recordings/takes/`.
 - Background options: `--background grid` (calibration grid) or `--background splat --scene <file.ply|.splat> --scene-align <align.json>`.
 - `--tracking-loss hold` (default) keeps compositing over the last good pose during a dropout and flags it; `--tracking-loss raw` shows the camera picture instead.

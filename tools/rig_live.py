@@ -429,7 +429,7 @@ def run_gui(engine, a, out_dir):
     from rema.qt_env import ensure_xcb_cursor
     ensure_xcb_cursor()
     from PySide6.QtCore import QTimer, Qt, QRectF
-    from PySide6.QtGui import QImage, QPainter, QColor, QFont, QPen
+    from PySide6.QtGui import QImage, QPainter, QColor, QFont, QPen, QPainterPath, QLinearGradient, QRadialGradient
     from PySide6.QtWidgets import QApplication, QWidget
     from rema.video_out import TakeRecorder
     from rema.astra_depth import DepthStream, colorize
@@ -462,6 +462,7 @@ def run_gui(engine, a, out_dir):
             self.rec = None
             self.msg = ''
             self.msg_until = 0.0
+            self.toast = None                 # (title, detail, ok, t_start): centre 'clip saved' notification
 
         def paintEvent(self, ev):
             pnt = QPainter(self)
@@ -492,7 +493,7 @@ def run_gui(engine, a, out_dir):
                 fm = pnt.fontMetrics()
                 lh = fm.height() + 2
                 pad = max(4, lh // 3)
-                y0 = 12 + (lh + pad * 2 if self.rec else 0)
+                y0 = 12 + (int(self.dot_size(H) + 16) if self.rec else 0)
                 tw_max = max([fm.horizontalAdvance(t) for t in lines] or [0])
                 pnt.fillRect(QRectF(10, y0, tw_max + 2 * pad, lh * len(lines) + pad), QColor(0, 0, 0, 120))
                 for i, (text, c) in enumerate(zip(lines, colours + [None] * len(lines))):
@@ -511,21 +512,119 @@ def run_gui(engine, a, out_dir):
                 pnt.fillRect(QRectF((W - tw) / 2, by - lh - 6, tw, lh + 2), QColor(0, 0, 0, 170))
                 pnt.setPen(QColor(*quality_colour(self.quality)) if self.quality < 0.5 else QColor(235, 235, 235))
                 pnt.drawText(QRectF((W - tw) / 2, by - lh - 6, tw, lh + 2), Qt.AlignCenter, label)
-                if self.rec:
+                if self.rec:                              # take name + timer beside the red circle
                     rec_text = f'REC   Take{self.rec.take}   {self.rec.seconds():5.1f} s'
-                    dot = lh * 0.6
-                    pnt.fillRect(QRectF(10, 10, fm.horizontalAdvance(rec_text) + dot + 3 * pad, lh + pad), QColor(0, 0, 0, 170))
-                    pnt.setBrush(QColor(230, 30, 30))
-                    pnt.setPen(Qt.NoPen)
-                    pnt.drawEllipse(QRectF(10 + pad, 10 + (lh + pad - dot) / 2, dot, dot))
-                    pnt.setPen(QColor(255, 90, 90))
-                    pnt.drawText(QRectF(10 + 2 * pad + dot, 10, fm.horizontalAdvance(rec_text) + pad, lh + pad), Qt.AlignVCenter, rec_text)
+                    d = self.dot_size(H)
+                    tx, ty = 16 + d + 12, 16 + (d - lh - pad) / 2
+                    pnt.fillRect(QRectF(tx, ty, fm.horizontalAdvance(rec_text) + 2 * pad, lh + pad), QColor(0, 0, 0, 150))
+                    pnt.setPen(QColor(255, 110, 110))
+                    pnt.drawText(QRectF(tx + pad, ty, fm.horizontalAdvance(rec_text) + pad, lh + pad), Qt.AlignVCenter, rec_text)
                 if time.monotonic() < self.msg_until:       # key feedback, hidden with the rest of the info
                     pnt.setFont(ui_font(max(12, H // 45) * a.text_scale))
                     mh = pnt.fontMetrics().height() * 2
                     pnt.fillRect(QRectF(0, H * 0.5 - mh / 2, W, mh), QColor(0, 0, 0, 150))
                     pnt.setPen(QColor(255, 255, 255))
                     pnt.drawText(QRectF(0, H * 0.5 - mh / 2, W, mh), Qt.AlignCenter, self.msg)
+            # Recording circle and the saved-clip notification are shown even with the info hidden (I).
+            if self.rec:
+                self.draw_rec_dot(pnt, H)
+            if self.toast:
+                self.draw_toast(pnt, W, H)
+
+        @staticmethod
+        def dot_size(H):
+            return max(14.0, H / 48)
+
+        def draw_rec_dot(self, pnt, H):
+            """Red recording circle, top-left, gently pulsing."""
+            pnt.setRenderHint(QPainter.Antialiasing)
+            d = self.dot_size(H)
+            cx, cy = 16 + d / 2, 16 + d / 2
+            pulse = 0.5 + 0.5 * np.cos(2 * np.pi * self.rec.seconds())        # 1 Hz
+            glow = QRadialGradient(cx, cy, d)
+            glow.setColorAt(0.0, QColor(255, 40, 40, int(90 + 70 * pulse)))
+            glow.setColorAt(1.0, QColor(255, 40, 40, 0))
+            pnt.setPen(Qt.NoPen)
+            pnt.setBrush(glow)
+            pnt.drawEllipse(QRectF(cx - d, cy - d, 2 * d, 2 * d))
+            body = QRadialGradient(cx - d * 0.15, cy - d * 0.2, d * 0.6)
+            body.setColorAt(0.0, QColor(255, 110, 100))
+            body.setColorAt(1.0, QColor(215, 20, 25))
+            pnt.setBrush(body)
+            pnt.setPen(QPen(QColor(255, 255, 255, 200), max(1.5, d / 14)))
+            pnt.drawEllipse(QRectF(cx - d / 2, cy - d / 2, d, d))
+
+        def draw_toast(self, pnt, W, H, duration=3.0):
+            """Centre 'liquid glass' notification: frosted blur of the picture behind, gradient tint, specular rim; fades in/out."""
+            title, detail, ok, t0 = self.toast
+            age = time.monotonic() - t0
+            if age > duration:
+                self.toast = None
+                return
+            alpha = min(1.0, age / 0.25, (duration - age) / 0.5)
+            pnt.save()
+            pnt.setRenderHint(QPainter.Antialiasing)
+            pnt.setOpacity(max(0.0, alpha))
+            f1, f2 = ui_font(max(14, H / 55)), ui_font(max(10, H / 95))
+            f1.setWeight(QFont.DemiBold)
+            pnt.setFont(f1); m1 = pnt.fontMetrics()
+            pnt.setFont(f2); m2 = pnt.fontMetrics()
+            icon = m1.height() * 1.6
+            pad = m1.height() * 0.9
+            tw = max(m1.horizontalAdvance(title), m2.horizontalAdvance(detail))
+            bw, bh = min(W * 0.9, tw + icon + pad * 3.2), m1.height() + m2.height() + pad * 2.2
+            rise = (1 - min(1.0, age / 0.25)) * H * 0.01
+            rect = QRectF((W - bw) / 2, (H - bh) / 2 + rise, bw, bh)
+            r = bh * 0.32
+            path = QPainterPath(); path.addRoundedRect(rect, r, r)
+            for i, a_ in ((10, 18), (6, 26), (3, 34)):                         # soft drop shadow
+                sh = QPainterPath(); sh.addRoundedRect(rect.adjusted(-i, -i + 6, i, i + 6), r + i, r + i)
+                pnt.fillPath(sh, QColor(0, 0, 0, a_))
+            pnt.setClipPath(path)
+            if self.canvas is not None:                                        # frosted glass: blurred, brightened picture behind
+                x0, y0 = max(0, int(rect.left())), max(0, int(rect.top()))
+                x1, y1 = min(self.canvas.shape[1], int(rect.right()) + 1), min(self.canvas.shape[0], int(rect.bottom()) + 1)
+                if x1 > x0 and y1 > y0:
+                    crop = self.canvas[y0:y1, x0:x1]
+                    small = cv2.resize(crop, (max(1, crop.shape[1] // 8), max(1, crop.shape[0] // 8)), interpolation=cv2.INTER_AREA)
+                    frost = cv2.resize(cv2.GaussianBlur(small, (0, 0), 2.0), (x1 - x0, y1 - y0), interpolation=cv2.INTER_CUBIC)
+                    frost = np.ascontiguousarray(cv2.addWeighted(frost, 0.75, np.full_like(frost, 40), 0.25, 0))
+                    pnt.drawImage(x0, y0, QImage(frost.data, frost.shape[1], frost.shape[0], frost.strides[0], QImage.Format_BGR888))
+            tint = QLinearGradient(rect.topLeft(), rect.bottomRight())         # gradient tint
+            if ok:
+                tint.setColorAt(0.0, QColor(120, 200, 255, 95)); tint.setColorAt(0.5, QColor(170, 140, 255, 70)); tint.setColorAt(1.0, QColor(255, 140, 200, 85))
+            else:
+                tint.setColorAt(0.0, QColor(255, 120, 90, 110)); tint.setColorAt(1.0, QColor(200, 40, 60, 110))
+            pnt.fillPath(path, tint)
+            sheen = QLinearGradient(rect.left(), rect.top(), rect.left(), rect.top() + bh * 0.55)   # specular top sheen
+            sheen.setColorAt(0.0, QColor(255, 255, 255, 110)); sheen.setColorAt(1.0, QColor(255, 255, 255, 0))
+            pnt.fillPath(path, sheen)
+            pnt.setClipping(False)
+            rim = QLinearGradient(rect.topLeft(), rect.bottomLeft())
+            rim.setColorAt(0.0, QColor(255, 255, 255, 210)); rim.setColorAt(1.0, QColor(255, 255, 255, 60))
+            pnt.setPen(QPen(rim, max(1.2, H / 900)))
+            pnt.setBrush(Qt.NoBrush)
+            pnt.drawPath(path)
+            ic = QRectF(rect.left() + pad, rect.center().y() - icon / 2, icon, icon)  # check / cross badge
+            pnt.setPen(Qt.NoPen)
+            pnt.setBrush(QColor(40, 200, 110, 230) if ok else QColor(230, 50, 50, 230))
+            pnt.drawEllipse(ic)
+            pnt.setPen(QPen(QColor(255, 255, 255), icon / 11, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            if ok:
+                c = ic.center(); s_ = icon * 0.22
+                p_ = QPainterPath(); p_.moveTo(c.x() - s_, c.y()); p_.lineTo(c.x() - s_ * 0.25, c.y() + s_ * 0.75); p_.lineTo(c.x() + s_ * 1.1, c.y() - s_ * 0.8)
+                pnt.drawPath(p_)
+            else:
+                c = ic.center(); s_ = icon * 0.2
+                pnt.drawLine(c.x() - s_, c.y() - s_, c.x() + s_, c.y() + s_); pnt.drawLine(c.x() - s_, c.y() + s_, c.x() + s_, c.y() - s_)
+            tx = ic.right() + pad * 0.8
+            ty = rect.top() + pad * 1.1
+            for text, font, met, col in ((title, f1, m1, QColor(255, 255, 255)), (detail, f2, m2, QColor(240, 240, 248, 230))):
+                pnt.setFont(font)
+                pnt.setPen(QColor(0, 0, 0, 90)); pnt.drawText(int(tx + 1), int(ty + met.ascent() + 1), text)
+                pnt.setPen(col); pnt.drawText(int(tx), int(ty + met.ascent()), text)
+                ty += met.height() + pad * 0.2
+            pnt.restore()
 
         def flash(self, text, seconds=3.0):
             self.msg, self.msg_until = text, time.monotonic() + seconds
@@ -555,15 +654,17 @@ def run_gui(engine, a, out_dir):
                         self.held_at_start = engine.stats.get('held', 0)
                         self.rec = TakeRecorder(w, h, folder=a.take_folder or None, meta={'args': vars(a), 'profile': a.profile, 'scene': a.scene if a.background == 'splat' else None,
                                                               'scene_align': a.scene_align if a.background == 'splat' else None, 'session': str(out_dir)})
-                        self.flash(f'RECORDING Take{self.rec.take} -> {self.rec.path.name}')
+                        print(time.strftime('%H:%M:%S'), f'RECORDING Take{self.rec.take} -> {self.rec.path}', flush=True)
                     except Exception as e:
                         self.flash('cannot record: ' + str(e))
                 else:
                     rec, self.rec = self.rec, None
                     rec.meta['frames_with_held_pose'] = engine.stats.get('held', 0) - getattr(self, 'held_at_start', 0)
                     rc = rec.close()
-                    self.flash(f'saved {rec.path.name}  ({rec.seconds():.1f} s, {rec.frames} frames, {rec.dropped} dropped)' if rc == 0
-                               else f'Take{rec.take} encoder error {rc}')
+                    where = 'Desktop' if rec.folder == Path.home() / 'Desktop' else str(rec.folder)
+                    print(time.strftime('%H:%M:%S'), f'saved {rec.path} ({rec.seconds():.1f} s, {rec.frames} frames, {rec.dropped} dropped) rc={rc}', flush=True)
+                    self.toast = ((f'Clip saved as {rec.path.name}', f'to {where}   ·   {rec.seconds():.1f} s', True) if rc == 0 else
+                                  (f'Take{rec.take} could not be saved', f'encoder error {rc}  -  see the session log', False)) + (time.monotonic(),)
 
     view = View()
     view.resize(1600, 900)

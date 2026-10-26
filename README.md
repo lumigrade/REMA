@@ -84,8 +84,8 @@ cd ~/Desktop/REMA
 
 | Key | Operator view |
 |---|---|
-| **R** | start / stop a take → `~/Desktop/Take<N>_<date_time>.mp4` (H.265, clean composite) |
-| **I** | hide / show text, tracking bar and REC tag (camera + depth picture-in-pictures stay) |
+| **R** | start / stop a take → `~/Desktop/Take<N>_<date_time>.mp4` (H.265, clean composite); a red circle shows top left while recording, and a glass notification in the centre confirms the saved file name for 3 s |
+| **I** | hide / show text and tracking bar (camera + depth picture-in-pictures, the recording circle and the saved-clip notification stay) |
 | **V** | composite ↔ overlay (virtual scene blended over the real room, for registration checks) |
 | **F** / **Esc** | fullscreen on / off |
 | **Q** | quit |

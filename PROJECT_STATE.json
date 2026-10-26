@@ -87,7 +87,7 @@
       "report": "/home/pc/rema-data/reports/depth_startup_fix.json"
     }
   },
-  "last_updated": "2026-10-26T15:12:10+07:00",
+  "last_updated": "2026-10-26T15:27:16+07:00",
   "scaffold": {
     "cpu_contract_tests": 105,
     "hardware_validation": false,
@@ -805,6 +805,12 @@
     "date": "2026-10-26T15:12:10+07:00",
     "finding": "RED SDI monitoring overlays shrink the picture to 1192x756 inside 1360x768; calibration expects Clean full frame",
     "software": "rema.sdi_capture.picture_inset + rig_live warning + rema_app pre-flight notification; no auto-crop",
-    "next_action": "set RED SDI output to Clean (Monitoring > Monitors > SDI overlays off)"
+    "next_action": "set RED SDI output to Clean (Monitoring > Monitors > SDI overlays off)",
+    "resolved": "user switched RED SDI output to Clean; full-frame composite confirmed by user"
+  },
+  "operator_view_recording_ui": {
+    "date": "2026-10-26T15:27:16+07:00",
+    "rec_indicator": "red circle top left, always visible while recording",
+    "saved_notification": "3 s centre glass notification with file name and folder"
   }
 }
