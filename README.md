@@ -6,11 +6,11 @@
 
 *Live REMA composite recorded with the operator view (`Take2`): RED V-RAPTOR picture via SDI, actor matte on the GPU, background rendered from the Antilatency-tracked camera pose. The real room (a cluttered workshop) is fully replaced.*
 
-| | | |
-|---|---|---|
-| ![](docs/media/gallery_1.jpg) | ![](docs/media/gallery_2.jpg) | ![](docs/media/gallery_3.jpg) |
+| | |
+|---|---|
+| ![](docs/media/gallery_1.jpg) | ![](docs/media/gallery_3.jpg) |
 
-*Different camera positions from the same handheld take: the scene keeps its perspective, horizon and scale as the tracked camera moves.*
+*Different camera positions from handheld takes: the scene keeps its perspective, horizon and scale as the tracked camera moves.*
 
 ---
 
