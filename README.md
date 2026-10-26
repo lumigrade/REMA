@@ -121,6 +121,8 @@ Earlier work (Orbbec-only prototype, guided depth calibration, room tracking) re
 - [PLAN_REMA.md](PLAN_REMA.md) — original research plan and decisions.
 - [WORKLOG.md](WORKLOG.md) / [PROJECT_STATE.json](PROJECT_STATE.json) — dated engineering log with reproduction commands and measured evidence.
 
-## Third-party components
+## Licence
 
-Not included in this repository and used under their own licences: Antilatency SDK and Service (proprietary, via the separate VPcamtracking bundle), Robust Video Matting model (download, hash in `RUNTIME_ASSETS.json`), OpenNI2 / Orbbec drivers, the sample 3DGS scene (Inria pre-trained Tanks & Temples "train", research use). Research project; no licence has been assigned to this code yet.
+REMA's source code, documentation and images are released under the [MIT License](LICENSE).
+
+Third-party components are **not** included in this repository and remain under their own licences: Antilatency SDK and Service (proprietary, via the separate VPcamtracking bundle), Robust Video Matting model (downloaded at setup, hash in `RUNTIME_ASSETS.json`), OpenNI2 / Orbbec drivers, and the sample 3DGS scene (Inria pre-trained Tanks & Temples "train", research use only).
